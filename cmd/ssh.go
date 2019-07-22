@@ -10,7 +10,7 @@ import (
 )
 
 // Create a cluster environment (azure simple, multi-cluster, keyvault, etc.)
-func Simulate() (err error) {
+func SSH() (err error) {
 	// Make sure host system contains all utils needed by Fabrikate
 	requiredSystemTools := []string{"git", "helm", "sh", "curl", "terraform", "az"}
 	for _, tool := range requiredSystemTools {
@@ -21,16 +21,12 @@ func Simulate() (err error) {
 		log.Info(emoji.Sprintf(":mag: Using %s: %s", tool, path))
 	}
 
-	// Terraform Initialization
-	log.Info(emoji.Sprintf(":checkered_flag: Terraform Init"))
-	cmd := exec.Command("terraform", "init")
-	cmd.Dir = "path/to/terraform/config"
-	if output, err := cmd.CombinedOutput(); err != nil {
+	// Create SSH Keys
+	log.Info(emoji.Sprintf(":closed_lock_with_key: Creating New SSH Keys"))
+	if output, err := exec.Command("ssh-keygen", "-f", "bedrock/cluster/environments/bedrock-cli-demo/deploy_key", "-P", "''").CombinedOutput(); err != nil {
 		log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
 		return err
 	}
-
-	// Terraform Plan
 
 	if err == nil {
 		log.Info(emoji.Sprintf(":raised_hands: Cluster has been successfully created!"))
@@ -39,7 +35,7 @@ func Simulate() (err error) {
 	return err
 }
 
-var simulateCmd = &cobra.Command{
+var sshCmd = &cobra.Command{
 	Use:   "create <config>",
 	Short: "Create an Azure Kubernetes Service (AKS) cluster using Terraform",
 	Long:  `Create an Azure Kubernetes Service (AKS) cluster using Terraform`,
@@ -48,10 +44,10 @@ var simulateCmd = &cobra.Command{
 		if !((args[0] == "simple") || (args[0] == "multi")) {
 			return errors.New("the environment you specified is not of the following: simple, multi, keyvault")
 		}
-		return Simulate()
+		return SSH()
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(simulateCmd)
+	rootCmd.AddCommand(sshCmd)
 }
