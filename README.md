@@ -4,6 +4,8 @@ Bedrock CLI is an open-source project that was developed to supplement Project B
 
 This command line tool will help simplify the automation and management of your Kubernetes resource deployments across clusters and environments, allowing you to rollout processes and find deployment issues more quickly.
 
+![Bedrock CLI Demo](./images/bedrock-cli.gif)
+
 ## Prerequisites
   1. Azure Subscription
   2. Azure CLI
@@ -20,8 +22,6 @@ Bedrock CLI aims to achieve the following:
 ## Design
 
 ![Bedrock CLI](./images/bedrock-cli-diagram.png)
-
-![Bedrock CLI Demo](./images/bedrock-cli.gif)
 
 ## Installation
 
