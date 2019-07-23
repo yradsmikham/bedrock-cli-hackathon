@@ -49,10 +49,10 @@ func Init(environment string) (err error) {
 	}
 
 	// To-do: Generate ssh keys
-
+	fullEnvironmentPath := environmentPath + "/" + environment
+	SSH(fullEnvironmentPath, "my-key")
 
 	// Save bedrock-config.tfvars
-	fullEnvironmentPath := environmentPath + "/" + environment
 	err = addConfigTemplate(fullEnvironmentPath, environment, randomName)
 
 	if err == nil {
