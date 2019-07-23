@@ -39,7 +39,8 @@ func Init(environment string) (err error) {
 	}
 
 	// Copy Terraform Template
-	environmentPath := "bedrock/cluster/environments/bedrock_"+randomName+"_cluster"
+	environmentPath := "bedrock/cluster/environments/" + randomName
+	os.MkdirAll(environmentPath, os.ModePerm)
 
 	log.Info(emoji.Sprintf(":flashlight: Creating New Environment"))
 	if output, err := exec.Command("cp", "-r", "bedrock/cluster/environments/azure-simple", environmentPath).CombinedOutput(); err != nil {
@@ -51,11 +52,11 @@ func Init(environment string) (err error) {
 
 
 	// Save bedrock-config.tfvars
-	err = addConfigTemplate(environmentPath, environment, randomName)
-
+	fullEnvironmentPath := environmentPath + "/" + environment
+	err = addConfigTemplate(fullEnvironmentPath, environment, randomName)
 
 	if err == nil {
-		log.Info(emoji.Sprintf(":raised_hands: Cluster " + environmentPath +" has been successfully created!"))
+		log.Info(emoji.Sprintf(":raised_hands: Cluster " + fullEnvironmentPath +" has been successfully created!"))
 		return nil
 	}
 
