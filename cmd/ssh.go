@@ -36,9 +36,9 @@ func SSH() (err error) {
 }
 
 var sshCmd = &cobra.Command{
-	Use:   "create <config>",
-	Short: "Create an Azure Kubernetes Service (AKS) cluster using Terraform",
-	Long:  `Create an Azure Kubernetes Service (AKS) cluster using Terraform`,
+	Use:   "ssh <config>",
+	Short: "Create new SSH Keys",
+	Long:  `Create new SSH Keys`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 
 		if !((args[0] == "simple") || (args[0] == "multi")) {

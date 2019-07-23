@@ -40,9 +40,9 @@ func Simulate() (err error) {
 }
 
 var simulateCmd = &cobra.Command{
-	Use:   "create <config>",
-	Short: "Create an Azure Kubernetes Service (AKS) cluster using Terraform",
-	Long:  `Create an Azure Kubernetes Service (AKS) cluster using Terraform`,
+	Use:   "simulate <config>",
+	Short: "Simulate an Azure Kubernetes Service (AKS) cluster using Terraform",
+	Long:  `Simulate an Azure Kubernetes Service (AKS) cluster using Terraform`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 
 		if !((args[0] == "simple") || (args[0] == "multi")) {
