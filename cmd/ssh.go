@@ -24,16 +24,6 @@ func SSH(name string) (err error) {
 		os.Remove(keyPath)
 		os.Remove(keyPath + ".pub")
 	}
-	
-	// Make sure host system contains all utils needed by this module
-	requiredSystemTools := []string{"git", "helm", "sh", "curl", "terraform", "az"}
-	for _, tool := range requiredSystemTools {
-		path, err := exec.LookPath(tool)
-		if err != nil {
-			return err
-		}
-		log.Info(emoji.Sprintf(":mag: Using %s: %s", tool, path))
-	}
 
 	// Create SSH Keys
 	log.Info(emoji.Sprintf(":closed_lock_with_key: Creating New SSH Keys"))
