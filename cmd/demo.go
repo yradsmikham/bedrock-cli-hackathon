@@ -1,8 +1,9 @@
 package cmd
 
 import (
-	"errors"
+	"math/rand"
 	"os/exec"
+	"time"
 
 	"github.com/docker/docker/pkg/namesgenerator"
 	"github.com/kyokomi/emoji"
@@ -11,7 +12,7 @@ import (
 )
 
 // Create a cluster environment (azure simple, multi-cluster, keyvault, etc.)
-func Demo(environment string) (err error) {
+func Demo() (err error) {
 	// Make sure host system contains all utils needed by Fabrikate
 	requiredSystemTools := []string{"git", "helm", "sh", "curl", "terraform", "az"}
 	for _, tool := range requiredSystemTools {
@@ -22,13 +23,13 @@ func Demo(environment string) (err error) {
 		log.Info(emoji.Sprintf(":mag: Using %s: %s", tool, path))
 	}
 
+	rand.Seed(time.Now().UnixNano())
 	randomName := namesgenerator.GetRandomName(0)
 
-	// Clone Microsoft Bedrock Repo
-	log.Info(emoji.Sprintf(":crystal_ball: Cloning Bedrock Repo"))
-	if output, err := exec.Command("git", "clone", "https://github.com/microsoft/bedrock").CombinedOutput(); err != nil {
-		log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
-		return err
+	// Check if Bedrock Repo is already cloned
+	log.Info(emoji.Sprintf(":open_file_folder: Checking for Bedrock"))
+	if output, err := exec.Command("git", "clone", "https://github.com/microsoft/bedrock").CombinedOutput(); output != nil || err != nil {
+		log.Info(emoji.Sprintf(":star: Bedrock Repo already cloned"))
 	}
 
 	// Create an Azure SP
@@ -40,11 +41,20 @@ func Demo(environment string) (err error) {
 
 	// Copy Terraform Template
 	log.Info(emoji.Sprintf(":flashlight: Creating New Environment"))
-	if output, err := exec.Command("cp", "-r", "bedrock/cluster/environments/azure-simple", "bedrock/cluster/environments/bedrock-"+randomName).CombinedOutput(); err != nil {
+	if output, err := exec.Command("cp", "-r", "bedrock/cluster/environments/azure-simple", "bedrock/cluster/environments/bedrock_"+randomName+"_cluster").CombinedOutput(); err != nil {
 		log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
 		return err
 	}
 
+	// Terraform Initialization
+	/* 	log.Info(emoji.Sprintf(":checkered_flag: Terraform Init"))
+	   	cmd := exec.Command("terraform", "init")
+	   	cmd.Dir = "bedrock/cluster/environments/bedrock_" + randomName + "_cluster"
+	   	if output, err := cmd.CombinedOutput(); err != nil {
+	   		log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
+	   		return err
+	   	}
+	*/
 	if err == nil {
 		log.Info(emoji.Sprintf(":raised_hands: Cluster has been successfully created!"))
 	}
@@ -52,18 +62,12 @@ func Demo(environment string) (err error) {
 	return err
 }
 
-var environment string
-
 var demoCmd = &cobra.Command{
-	Use:   "demo <config>",
+	Use:   "demo",
 	Short: "Demo an Azure Kubernetes Service (AKS) cluster using Terraform",
 	Long:  `Demo an Azure Kubernetes Service (AKS) cluster using Terraform`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-
-		if !((args[0] == "simple") || (args[0] == "multi")) {
-			return errors.New("the environment you specified is not of the following: simple, multi, keyvault")
-		}
-		return Demo(environment)
+		return Demo()
 	},
 }
 
