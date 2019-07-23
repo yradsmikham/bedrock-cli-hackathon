@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	// "errors"
 	"os/exec"
     "io/ioutil"
 	"github.com/kyokomi/emoji"
@@ -10,7 +9,7 @@ import (
 	"os"
 )
 
-// Create a cluster environment (azure simple, multi-cluster, keyvault, etc.)
+// Create a new SSH key
 func SSH(name string) (err error) {
 	log.Info(emoji.Sprintf(":lock_with_ink_pen: Creating new SSH with name " + name))
 	currentPath, err := os.Getwd()

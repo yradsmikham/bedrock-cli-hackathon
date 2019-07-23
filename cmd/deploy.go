@@ -45,9 +45,9 @@ func Deploy() (err error) {
 }
 
 var deployCmd = &cobra.Command{
-	Use:   "create <config>",
-	Short: "Create an Azure Kubernetes Service (AKS) cluster using Terraform",
-	Long:  `Create an Azure Kubernetes Service (AKS) cluster using Terraform`,
+	Use:   "deploy <config>",
+	Short: "Deploy an Azure Kubernetes Service (AKS) cluster using Terraform",
+	Long:  `Deploy an Azure Kubernetes Service (AKS) cluster using Terraform`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 
 		if !((args[0] == "simple") || (args[0] == "multi")) {
