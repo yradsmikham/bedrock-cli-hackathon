@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"errors"
 	"os/exec"
+	// "io/ioutil"
 
 	"github.com/kyokomi/emoji"
 	log "github.com/sirupsen/logrus"
@@ -10,45 +10,52 @@ import (
 )
 
 // Create a cluster environment (azure simple, multi-cluster, keyvault, etc.)
-func Simulate() (err error) {
-	// Make sure host system contains all utils needed by Fabrikate
-	requiredSystemTools := []string{"git", "helm", "sh", "curl", "terraform", "az"}
-	for _, tool := range requiredSystemTools {
-		path, err := exec.LookPath(tool)
-		if err != nil {
-			return err
-		}
-		log.Info(emoji.Sprintf(":mag: Using %s: %s", tool, path))
-	}
+func Simulate(name string) (err error) {
+	
+	// TODO: For each subdirectory inside the named environment directory, run terraform init and plan
 
-	// Terraform Initialization
-	log.Info(emoji.Sprintf(":checkered_flag: Terraform Init"))
-	cmd := exec.Command("terraform", "init")
-	cmd.Dir = "path/to/terraform/config"
-	if output, err := cmd.CombinedOutput(); err != nil {
+	// Terraform Initialization (terraform init -backend-config=./bedrock-backend.tfvars)
+	log.Info(emoji.Sprintf(":package: Terraform Init"))
+
+	// TODO: If there is a bedrock-cli-backend.tfvars, then use that
+	// cmd := exec.Command("terraform", "init", "-backend-config=./bedrock-backend.tfvars")
+
+	initCmd := exec.Command("terraform", "init")
+	initCmd.Dir = name
+	if output, err := initCmd.CombinedOutput(); err != nil {
 		log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
 		return err
 	}
 
-	// Terraform Plan
+	// Terraform Plan (terraform plan -var-file=./bedrock-terraform.tfvars)
+	log.Info(emoji.Sprintf(":hammer: Terraform Plan"))
+	planCmd := exec.Command("terraform", "plan", "-var-file=./bedrock-terraform.tfvars")
+	planCmd.Dir = name
+	if output, err := planCmd.CombinedOutput(); err != nil {
+		log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
+		return err
+	}
 
 	if err == nil {
-		log.Info(emoji.Sprintf(":raised_hands: Cluster has been successfully created!"))
+		log.Info(emoji.Sprintf(":raised_hands: Completed simulated dry-run of environment deployment!"))
 	}
 
 	return err
 }
 
 var simulateCmd = &cobra.Command{
-	Use:   "simulate <config>",
-	Short: "Simulate an Azure Kubernetes Service (AKS) cluster using Terraform",
-	Long:  `Simulate an Azure Kubernetes Service (AKS) cluster using Terraform`,
+	Use:   "simulate <environment-name>",
+	Short: "Simulate the environment deployment using Terraform",
+	Long:  `Simulate the environment deployment using terraform init and plan`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 
-		if !((args[0] == "simple") || (args[0] == "multi")) {
-			return errors.New("the environment you specified is not of the following: simple, multi, keyvault")
-		}
-		return Simulate()
+		log.Info("hello!!!!!")
+
+		var name = "id_rsa"
+		if len(args) > 0 {
+			name = args[0]
+		} 
+		return Simulate(name)
 	},
 }
 
