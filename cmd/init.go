@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/docker/docker/pkg/namesgenerator"
 	"github.com/kyokomi/emoji"
@@ -50,40 +51,44 @@ func Init(environment string) (err error) {
 
 	// To-do: Generate ssh keys
 	fullEnvironmentPath := environmentPath + "/" + environment
-	SSH(fullEnvironmentPath, "my-key")
+	SSHKey, err := SSH(fullEnvironmentPath, "my-key")
 
-	// Save bedrock-config.tfvars
-	err = addConfigTemplate(fullEnvironmentPath, environment, randomName)
+	if (err == nil){
+		// Save bedrock-config.tfvars
+		err = addConfigTemplate(fullEnvironmentPath, randomName, SSHKey)
 
-	if err == nil {
-		log.Info(emoji.Sprintf(":raised_hands: Cluster " + fullEnvironmentPath +" has been successfully created!"))
-		return nil
+		if err == nil {
+			log.Info(emoji.Sprintf(":raised_hands: Cluster " + fullEnvironmentPath +" has been successfully created!"))
+			return nil
+		}
 	}
 
 	return err
 }
 
 // Adds a blank bedrock config template
-func addConfigTemplate(path string, environment string, clusterName string)(error){
+func addConfigTemplate(environmentPath string, clusterName string, SSHKey string)(error){
    
+	SSHKey = strings.TrimSuffix(SSHKey, "\n")
+
 	if (environment == "azure-simple") {
  
 	 azureSimpleConfig := make(map[string]string)
  
-	 azureSimpleConfig["resource_group_name"] = "\"" + clusterName + "_rg\""
+	 azureSimpleConfig["resource_group_name"] = "\"" + clusterName + "-rg\""
 	 azureSimpleConfig["resource_group_location"] = "\"\""
 	 azureSimpleConfig["cluster_name"] = "\"" + clusterName +"\""
 	 azureSimpleConfig["agent_vm_count"]  = "\"\""
 	 azureSimpleConfig["dns_prefix"] = "\"\""
 	 azureSimpleConfig["service_principal_id"] = servicePrincipalID
 	 azureSimpleConfig["service_principal_secret"] = servicePrincipalSecret
-	 azureSimpleConfig["ssh_public_key"]  = "\"\"" // To-do: read the ssh public key file
-	 azureSimpleConfig["gitops_ssh_url"] = gitopsSSHURL
-	 azureSimpleConfig["gitops_ssh_key"] = path + "/keys/repo_ssh_key" // To-do get correct name
+	 azureSimpleConfig["ssh_public_key"]  = "\"" + SSHKey + "\"" // To-do: read the ssh public key file
+	 azureSimpleConfig["gitops_ssh_url"] = "\"" + gitopsSSHURL + "\""
+	 azureSimpleConfig["gitops_ssh_key"] = "\"" + environmentPath + "\""
 	 azureSimpleConfig["vnet_name"] = "\"\""
 
-	 f, err := os.Create(path + "/bedrock-config.tfvars")
-	 log.Info(emoji.Sprintf(":raised_hands: Create Bedrock config file " + path + "/bedrock-config.tfvars"))
+	 f, err := os.Create(environmentPath + "/bedrock-config.tfvars")
+	 log.Info(emoji.Sprintf(":raised_hands: Create Bedrock config file " + environmentPath + "/bedrock-config.tfvars"))
 	 if err != nil {
 		 return err
 	 }
