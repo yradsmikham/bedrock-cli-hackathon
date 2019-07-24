@@ -9,8 +9,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Create a cluster environment (azure simple, multi-cluster, keyvault, etc.)
+// Simulate or dry-run a bedrock environment creation (azure simple, multi-cluster, keyvault, etc.)
 func Simulate(name string) (err error) {
+	// TODO: Env vars as required, or should they be set externally?
+
 	
 	// TODO: For each subdirectory inside the named environment directory, run terraform init and plan?
 	// Alternatively, just look for *common*, and run that directory first?
@@ -51,9 +53,8 @@ var simulateCmd = &cobra.Command{
 	Long:  `Simulate the environment deployment using terraform init and plan`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 
-		log.Info("hello!!!!!")
-
-		var name = "id_rsa"
+		var name = "unique-environment-name"
+		
 		if len(args) > 0 {
 			name = args[0]
 		} 
