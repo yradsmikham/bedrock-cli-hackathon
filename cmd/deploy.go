@@ -11,6 +11,7 @@ import (
 
 // Apply and deploy a bedrock environment (azure simple, multi-cluster, keyvault, etc.)
 func Deploy(name string) (err error) {
+	// TODO: Env vars as required, or should they be set externally?
 	
 	// TODO: For each subdirectory inside the named environment directory, run terraform init and plan?
 	// Alternatively, just look for *common*, and run that directory first?
@@ -31,7 +32,7 @@ func Deploy(name string) (err error) {
 	// Terraform Plan (terraform plan -var-file=./bedrock-terraform.tfvars)
 	// TODO: Check that ./bedrock-terraform.tfvars exists. Throw error if it doesn't, (or default to terraform.tfvars?)
 	log.Info(emoji.Sprintf(":hammer: Terraform Apply"))
-	planCmd := exec.Command("terraform", "apply", "-var-file=./bedrock-terraform.tfvars")
+	planCmd := exec.Command("terraform", "apply", "-var-file=./bedrock-terraform.tfvars", "-auto-approve")
 	planCmd.Dir = name
 	if output, err := planCmd.CombinedOutput(); err != nil {
 		log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))

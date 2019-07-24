@@ -11,6 +11,8 @@ import (
 
 // Simulate or dry-run a bedrock environment creation (azure simple, multi-cluster, keyvault, etc.)
 func Simulate(name string) (err error) {
+	// TODO: Env vars as required, or should they be set externally?
+
 	
 	// TODO: For each subdirectory inside the named environment directory, run terraform init and plan?
 	// Alternatively, just look for *common*, and run that directory first?
