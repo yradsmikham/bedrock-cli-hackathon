@@ -38,7 +38,7 @@ func Demo(servicePrincipal string, secret string) (err error) {
 	}
 
 	// Copy Terraform Template
-	log.Info(emoji.Sprintf(":flashlight: Creating New Environment"))
+	log.Info(emoji.Sprintf(":flashlight: Creating New Environment: bedrock-" + randomName + "-cluster"))
 	if output, err := exec.Command("cp", "-r", "bedrock/cluster/environments/azure-simple", "bedrock/cluster/environments/bedrock-"+randomName+"-cluster").CombinedOutput(); err != nil {
 		log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
 		return err
@@ -72,7 +72,7 @@ func Demo(servicePrincipal string, secret string) (err error) {
 
 	// Add to KUBECONFIG
 	log.Info(emoji.Sprintf(":heavy_plus_sign: Add Cluster to KubeConfig"))
-	kubeConfigCmd := exec.Command("KUBECONFIG=./output/bedrock_kube_config:~/.kube/config", "kubectl", "config", "view", "--flatten", ">", "merged-config", "&&", "mv", "merged-config", "~/.kube/config")
+	kubeConfigCmd := exec.Command("/bin/sh", "-c", "KUBECONFIG=./output/bedrock_kube_config:~/.kube/config kubectl config view --flatten > merged-config && mv merged-config ~/.kube/config")
 	kubeConfigCmd.Dir = "bedrock/cluster/environments/bedrock-" + randomName + "-cluster"
 	if output, err := kubeConfigCmd.CombinedOutput(); err != nil {
 		log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
