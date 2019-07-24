@@ -3,7 +3,7 @@ package main
 import (
 	"reflect"
 
-	"./cmd"
+	"github.com/yradsmikham/bedrock-cli/cmd"
 	log "github.com/sirupsen/logrus"
 	"github.com/timfpark/yaml"
 )
