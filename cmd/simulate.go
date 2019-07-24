@@ -30,7 +30,7 @@ func Simulate() (err error) {
 		return err
 	}
 
-	// Terraform Plan
+	// Add to KUBECONFIG
 
 	if err == nil {
 		log.Info(emoji.Sprintf(":raised_hands: Cluster has been successfully created!"))
