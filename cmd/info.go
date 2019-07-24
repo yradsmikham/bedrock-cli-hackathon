@@ -89,7 +89,7 @@ var infoCmd = &cobra.Command{
 			return errors.New("You need to specify an environment: simple, multi, keyvault")
 		}
 		if !((args[0] == "simple") || (args[0] == "multi") || args[0] == "keyvault" || args[0] == "common") {
-			return errors.New("The environment you specified is not of the following: simple, multi, keyvault")
+			return errors.New("The environment you specified is not of the following: simple, multi, keyvault, common")
 		}
 		return Info(args[0])
 	},
