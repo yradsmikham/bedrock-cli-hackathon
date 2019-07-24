@@ -55,7 +55,7 @@ func Init(environment string) (err error) {
 
 	if (err == nil){
 		// Save bedrock-config.tfvars
-		err = addConfigTemplate(fullEnvironmentPath, environment, randomName, SSHKey)
+		err = addConfigTemplate(fullEnvironmentPath, randomName, SSHKey)
 
 		if err == nil {
 			log.Info(emoji.Sprintf(":raised_hands: Cluster " + fullEnvironmentPath +" has been successfully created!"))
@@ -67,7 +67,7 @@ func Init(environment string) (err error) {
 }
 
 // Adds a blank bedrock config template
-func addConfigTemplate(environmentPath string, environment string, clusterName string, SSHKey string)(error){
+func addConfigTemplate(environmentPath string, clusterName string, SSHKey string)(error){
    
 	SSHKey = strings.TrimSuffix(SSHKey, "\n")
 
