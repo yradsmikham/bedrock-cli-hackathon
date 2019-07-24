@@ -1,50 +1,65 @@
 package cmd
 
 import (
-	"errors"
 	"os/exec"
-
+    "io/ioutil"
 	"github.com/kyokomi/emoji"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"os"
 )
 
-// Create a cluster environment (azure simple, multi-cluster, keyvault, etc.)
-func SSH() (err error) {
-	// Make sure host system contains all utils needed by Fabrikate
-	requiredSystemTools := []string{"git", "helm", "sh", "curl", "terraform", "az"}
-	for _, tool := range requiredSystemTools {
-		path, err := exec.LookPath(tool)
-		if err != nil {
-			return err
-		}
-		log.Info(emoji.Sprintf(":mag: Using %s: %s", tool, path))
+// Create a new SSH key
+func SSH(path string, name string) (err error) {
+	log.Info(emoji.Sprintf(":lock_with_ink_pen: Creating new SSH with name " + name))
+
+	keyPath := path + "/" + name
+	log.Info(emoji.Sprintf(":gift_heart: Current wd is %s", path))
+
+	if _, err := os.Stat(keyPath); err == nil {
+		log.Info(emoji.Sprintf(":palm_tree: Path to %s exists, removing...", keyPath))
+		os.Remove(keyPath)
+		os.Remove(keyPath + ".pub")
 	}
 
 	// Create SSH Keys
 	log.Info(emoji.Sprintf(":closed_lock_with_key: Creating New SSH Keys"))
-	if output, err := exec.Command("ssh-keygen", "-f", "bedrock/cluster/environments/bedrock-cli-demo/deploy_key", "-P", "''").CombinedOutput(); err != nil {
+	if output, err := exec.Command("ssh-keygen",  "-t", "rsa", "-b", "4096", "-f", keyPath, "-P", "''").CombinedOutput(); err != nil {
 		log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
 		return err
 	}
 
 	if err == nil {
-		log.Info(emoji.Sprintf(":raised_hands: Cluster has been successfully created!"))
+		log.Info(emoji.Sprintf(":raised_hands: SSH key " + name + " has been created!" ))
+		log.Info(emoji.Sprintf(":pray: Add the following SSH key to 'Deploy Keys' in your Manifest repository"))
+		file, err := ioutil.ReadFile(keyPath + ".pub") 
+		if err != nil {
+			log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, file))
+			return err
+		}
+		log.Info(string(file))
 	}
 
 	return err
 }
 
 var sshCmd = &cobra.Command{
-	Use:   "ssh <config>",
-	Short: "Create new SSH Keys",
-	Long:  `Create new SSH Keys`,
+	Use:   "ssh [ssh_key_name]",
+	Short: "Create an SSH key",
+	Long:  `Create an SSH key`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		var name = "id_rsa"
+		if len(args) > 0 {
+			name = args[0]
+		} 
 
-		if !((args[0] == "simple") || (args[0] == "multi")) {
-			return errors.New("the environment you specified is not of the following: simple, multi, keyvault")
+		currentPath, err := os.Getwd()
+
+		if err != nil {
+			panic(err)
 		}
-		return SSH()
+
+		return SSH(currentPath, name)
 	},
 }
 
