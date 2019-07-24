@@ -55,7 +55,7 @@ var info_map = map[string]map[string][]string {
 			"Creates a resource group for your deployment, a VNET and subnet(s), and an Azure Key Vault with the appropriate access policies",
 		},
 		"pre-reqs": []string{
-			"A storage account in Azure: set environment variables " + Bold(Green("AZURE_STORAGE_ACCOUNT")).String() + " and " + Bold(Green("AZURE_STORAGE_KEY")).String(),
+			"A storage account in Azure: set the following fields as environment variables or pass as parameters: " + Bold(Green("AZURE_STORAGE_ACCOUNT")).String() + ", " + Bold(Green("AZURE_STORAGE_KEY")).String() + ", " + Bold(Green("ARM_SUBSCRIPTION_ID")).String() + ", " + Bold(Green("ARM_CLIENT_ID")).String() + ", " + Bold(Green("ARM_CLIENT_SECRET")).String() + ", " + Bold(Green("ARM_TENANT_ID")).String(),
 		},
 	},
 }
@@ -86,7 +86,7 @@ var infoCmd = &cobra.Command{
 	Long:  `Get details about an environment`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		if (len(args) == 0) {
-			return errors.New("You need to specify an environment: simple, multi, keyvault")
+			return errors.New("You need to specify an environment: simple, multi, keyvault, common")
 		}
 		if !((args[0] == "simple") || (args[0] == "multi") || args[0] == "keyvault" || args[0] == "common") {
 			return errors.New("The environment you specified is not of the following: simple, multi, keyvault, common")
