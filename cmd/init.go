@@ -1,26 +1,21 @@
 package cmd
 
 import (
-	"errors"
-	"time"
+	"fmt"
 	"math/rand"
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/docker/docker/pkg/namesgenerator"
 	"github.com/kyokomi/emoji"
-	"github.com/spf13/cobra"
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 )
 
-// Initializes the configuration for the given environment
+// Init functions initializes the configuration for the given environment
 func Init(environment string) (err error) {
-
-	if (environment != "azure-simple"){
-		return errors.New("Environment " + environment + " not supported.")
-	}
-
 	requiredSystemTools := []string{"git", "helm", "sh", "curl", "terraform", "az"}
 	for _, tool := range requiredSystemTools {
 		path, err := exec.LookPath(tool)
@@ -31,7 +26,7 @@ func Init(environment string) (err error) {
 	}
 
 	rand.Seed(time.Now().UnixNano())
-	randomName := namesgenerator.GetRandomName(0)
+	randomName := strings.Replace(namesgenerator.GetRandomName(0), "_", "-", -1)
 
 	// Check if Bedrock Repo is already cloned
 	log.Info(emoji.Sprintf(":open_file_folder: Checking for Bedrock"))
@@ -50,15 +45,14 @@ func Init(environment string) (err error) {
 	}
 
 	// To-do: Generate ssh keys
-	fullEnvironmentPath := environmentPath + "/" + environment
-	SSHKey, err := SSH(fullEnvironmentPath, "my-key")
-
-	if (err == nil){
+	fullEnvironmentPath := environmentPath + "/azure-simple"
+	SSHKey, err := SSH(fullEnvironmentPath, "deploy-key")
+	if err == nil {
 		// Save bedrock-config.tfvars
-		err = addConfigTemplate(fullEnvironmentPath, randomName, SSHKey)
+		err = addConfigTemplate(environment, fullEnvironmentPath, randomName, SSHKey)
 
 		if err == nil {
-			log.Info(emoji.Sprintf(":raised_hands: Cluster " + fullEnvironmentPath +" has been successfully created!"))
+			log.Info(emoji.Sprintf(":raised_hands: Cluster " + fullEnvironmentPath + " has been successfully created!"))
 			return nil
 		}
 	}
@@ -67,49 +61,104 @@ func Init(environment string) (err error) {
 }
 
 // Adds a blank bedrock config template
-func addConfigTemplate(environmentPath string, clusterName string, SSHKey string)(error){
-   
+func addConfigTemplate(environment string, environmentPath string, clusterName string, SSHKey string) (err error) {
 	SSHKey = strings.TrimSuffix(SSHKey, "\n")
 
-	if (environment == "azure-simple") {
- 
-	 azureSimpleConfig := make(map[string]string)
- 
-	 azureSimpleConfig["resource_group_name"] = "\"" + clusterName + "-rg\""
-	 azureSimpleConfig["resource_group_location"] = "\"\""
-	 azureSimpleConfig["cluster_name"] = "\"" + clusterName +"\""
-	 azureSimpleConfig["agent_vm_count"]  = "\"\""
-	 azureSimpleConfig["dns_prefix"] = "\"\""
-	 azureSimpleConfig["service_principal_id"] = servicePrincipalID
-	 azureSimpleConfig["service_principal_secret"] = servicePrincipalSecret
-	 azureSimpleConfig["ssh_public_key"]  = "\"" + SSHKey + "\"" // To-do: read the ssh public key file
-	 azureSimpleConfig["gitops_ssh_url"] = "\"" + gitopsSSHURL + "\""
-	 azureSimpleConfig["gitops_ssh_key"] = "\"" + environmentPath + "\""
-	 azureSimpleConfig["vnet_name"] = "\"\""
+	fmt.Println(environment)
+	if environment == "simple" {
+		azureSimpleConfig := make(map[string]string)
 
-	 f, err := os.Create(environmentPath + "/bedrock-config.tfvars")
-	 log.Info(emoji.Sprintf(":raised_hands: Create Bedrock config file " + environmentPath + "/bedrock-config.tfvars"))
-	 if err != nil {
-		 return err
-	 }
+		azureSimpleConfig["resource_group_name"] = "\"" + clusterName + "-rg\""
+		azureSimpleConfig["resource_group_location"] = "\"\""
+		azureSimpleConfig["cluster_name"] = "\"" + clusterName + "\""
+		azureSimpleConfig["agent_vm_count"] = "\"\""
+		azureSimpleConfig["dns_prefix"] = "\"" + clusterName + "\""
+		azureSimpleConfig["service_principal_id"] = servicePrincipal
+		azureSimpleConfig["service_principal_secret"] = secret
+		azureSimpleConfig["ssh_public_key"] = "\"" + SSHKey + "\""
+		azureSimpleConfig["gitops_ssh_url"] = "\"\""
+		azureSimpleConfig["gitops_ssh_key"] = "\"" + environmentPath + "\""
+		azureSimpleConfig["vnet_name"] = "\"" + clusterName + "-vnet\""
 
-	 for setting, value := range azureSimpleConfig {
-		f.WriteString(setting + " = " + value + "\n")
-	 }
+		f, err := os.Create(environmentPath + "/bedrock-config.tfvars")
+		log.Info(emoji.Sprintf(":raised_hands: Create Bedrock config file " + environmentPath + "/bedrock-config.tfvars"))
+		if err != nil {
+			return err
+		}
 
-	 f.Close()
- 
-	 return nil
+		for setting, value := range azureSimpleConfig {
+			f.WriteString(setting + " = " + value + "\n")
+		}
+
+		f.Close()
+
+		return nil
 	}
- 
-	return errors.New("Environment " + environment + " not supported.")
- }
- 
 
-var environment string
-var servicePrincipalID string
-var servicePrincipalSecret string
-var gitopsSSHURL string
+	if environment == "common-infra" {
+		// TO-DO: Need to customize the config for common-infra
+		commonInfraConfig := make(map[string]string)
+
+		commonInfraConfig["resource_group_name"] = "\"" + clusterName + "-rg\""
+		commonInfraConfig["resource_group_location"] = "\"\""
+		commonInfraConfig["cluster_name"] = "\"" + clusterName + "\""
+		commonInfraConfig["agent_vm_count"] = "\"\""
+		commonInfraConfig["dns_prefix"] = "\"\""
+		commonInfraConfig["service_principal_id"] = servicePrincipal
+		commonInfraConfig["service_principal_secret"] = secret
+		commonInfraConfig["ssh_public_key"] = "\"" + SSHKey + "\""
+		commonInfraConfig["gitops_ssh_url"] = "\"\""
+		commonInfraConfig["gitops_ssh_key"] = "\"" + environmentPath + "\""
+		commonInfraConfig["vnet_name"] = "\"\""
+
+		f, err := os.Create(environmentPath + "/bedrock-config.tfvars")
+		log.Info(emoji.Sprintf(":raised_hands: Create Bedrock config file " + environmentPath + "/bedrock-config.tfvars"))
+		if err != nil {
+			return err
+		}
+
+		for setting, value := range commonInfraConfig {
+			f.WriteString(setting + " = " + value + "\n")
+		}
+
+		f.Close()
+
+		return nil
+	}
+
+	if environment == "single-keyvault" {
+		// TO-DO: Need to customize the config for single keyvault
+
+		singleKeyvaultConfig := make(map[string]string)
+
+		singleKeyvaultConfig["resource_group_name"] = "\"" + clusterName + "-rg\""
+		singleKeyvaultConfig["resource_group_location"] = "\"\""
+		singleKeyvaultConfig["cluster_name"] = "\"" + clusterName + "\""
+		singleKeyvaultConfig["agent_vm_count"] = "\"\""
+		singleKeyvaultConfig["dns_prefix"] = "\"\""
+		singleKeyvaultConfig["service_principal_id"] = servicePrincipal
+		singleKeyvaultConfig["service_principal_secret"] = secret
+		singleKeyvaultConfig["ssh_public_key"] = "\"" + SSHKey + "\""
+		singleKeyvaultConfig["gitops_ssh_url"] = "\"\""
+		singleKeyvaultConfig["gitops_ssh_key"] = "\"" + environmentPath + "\""
+		singleKeyvaultConfig["vnet_name"] = "\"\""
+
+		f, err := os.Create(environmentPath + "/bedrock-config.tfvars")
+		log.Info(emoji.Sprintf(":raised_hands: Create Bedrock config file " + environmentPath + "/bedrock-config.tfvars"))
+		if err != nil {
+			return err
+		}
+
+		for setting, value := range singleKeyvaultConfig {
+			f.WriteString(setting + " = " + value + "\n")
+		}
+
+		f.Close()
+
+		return nil
+	}
+	return err
+}
 
 var initCmd = &cobra.Command{
 	Use:   "init <config>",
@@ -121,15 +170,6 @@ var initCmd = &cobra.Command{
 	},
 }
 
-
 func init() {
-	initCmd.Flags().StringVar(&environment, "environment", "azure-simple", "The cluster environment to be generated")
-	initCmd.Flags().StringVar(&servicePrincipalID, "service-principal-id", "", "The Azure service principal ID")
-	initCmd.Flags().StringVar(&servicePrincipalSecret, "service-principal-secret", "", "The Azure service principal secret")
-	initCmd.Flags().StringVar(&gitopsSSHURL, "gitops-ssh-url", "", "The url of the GitOps repository")
-	initCmd.MarkFlagRequired("service-principal-id")
-	initCmd.MarkFlagRequired("service-principal-secret")
-	initCmd.MarkFlagRequired("gitops-ssh-url")
-
 	rootCmd.AddCommand(initCmd)
 }
