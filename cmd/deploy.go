@@ -1,59 +1,64 @@
 package cmd
 
 import (
-	"errors"
 	"os/exec"
+	// "io/ioutil"
 
 	"github.com/kyokomi/emoji"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
-// Create a cluster environment (azure simple, multi-cluster, keyvault, etc.)
-func Deploy() (err error) {
-	// Make sure host system contains all utils needed by Fabrikate
-	requiredSystemTools := []string{"git", "helm", "sh", "curl", "terraform", "az"}
-	for _, tool := range requiredSystemTools {
-		path, err := exec.LookPath(tool)
-		if err != nil {
-			return err
-		}
-		log.Info(emoji.Sprintf(":mag: Using %s: %s", tool, path))
-	}
+// Apply and deploy a bedrock environment (azure simple, multi-cluster, keyvault, etc.)
+func Deploy(name string) (err error) {
+	
+	// TODO: For each subdirectory inside the named environment directory, run terraform init and plan?
+	// Alternatively, just look for *common*, and run that directory first?
 
-	// Terraform Apply
-	log.Info(emoji.Sprintf(":rocket: Terraform Apply"))
-	cmd2 := exec.Command("terraform", "apply", "-auto-approve", "--var", "resource_group_name=bedrock-cli-demo-simple-cluster", "--var", "cluster_name=bedrock-cli-demo-simple-cluster", "--var", "dns_prefix=bedrock-cli-demo-simple-cluster", "--var", "service_principal_id=<app-Id>", "--var", "service_principal_secret=<password>", "--var", "ssh_public_key=<ssh public key>", "--var", "vnet_name=bedrock-cli-demo-simple-cluster", "--var", "gitops_ssh_key=/path/to/private/key")
-	cmd2.Dir = "path/to/terraform/config"
-	if output, err := cmd2.CombinedOutput(); err != nil {
+	// Terraform Initialization (terraform init -backend-config=./bedrock-backend.tfvars)
+	log.Info(emoji.Sprintf(":package: Terraform Init"))
+
+	// TODO: If there is a bedrock-cli-backend.tfvars, then use that. OR default to backend.tfvars, OR just assume we're not using a backend deployment?
+	// cmd := exec.Command("terraform", "init", "-backend-config=./bedrock-backend.tfvars")
+
+	initCmd := exec.Command("terraform", "init")
+	initCmd.Dir = name
+	if output, err := initCmd.CombinedOutput(); err != nil {
 		log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
 		return err
 	}
 
-	// Copy to KUBECONFIG
-	log.Info(emoji.Sprintf(":heavy_plus_sign: Download Credentials for Kubernetes Cluster"))
-	if output, err := exec.Command("az", "aks", "get-credentials", "--resource-group", "bedrock-cli-demo-simple-cluster", "--name", "bedrock-cli-demo-simple-cluster").CombinedOutput(); err != nil {
+	// Terraform Plan (terraform plan -var-file=./bedrock-terraform.tfvars)
+	// TODO: Check that ./bedrock-terraform.tfvars exists. Throw error if it doesn't, (or default to terraform.tfvars?)
+	log.Info(emoji.Sprintf(":hammer: Terraform Apply"))
+	planCmd := exec.Command("terraform", "apply", "-var-file=./bedrock-terraform.tfvars")
+	planCmd.Dir = name
+	if output, err := planCmd.CombinedOutput(); err != nil {
 		log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
 		return err
 	}
 
 	if err == nil {
-		log.Info(emoji.Sprintf(":raised_hands: Cluster has been successfully created!"))
+		log.Info(emoji.Sprintf(":raised_hands: Completed Terraform environment deployment!"))
 	}
+
+	// TODO: if a bedrock kubeconfig output exists, then add that file to the local kubeconfig.
 
 	return err
 }
 
 var deployCmd = &cobra.Command{
-	Use:   "deploy <config>",
-	Short: "Deploy an Azure Kubernetes Service (AKS) cluster using Terraform",
-	Long:  `Deploy an Azure Kubernetes Service (AKS) cluster using Terraform`,
+	Use:   "deploy <environment-name>",
+	Short: "Deploy the bedrock environment using Terraform",
+	Long:  `Deploy the bedrock environment deployment using terraform init and apply and adds the cluster credentials to the local kubeconfig.`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 
-		if !((args[0] == "simple") || (args[0] == "multi")) {
-			return errors.New("the environment you specified is not of the following: simple, multi, keyvault")
-		}
-		return Deploy()
+		var name = "unique-environment-name"
+
+		if len(args) > 0 {
+			name = args[0]
+		} 
+		return Deploy(name)
 	},
 }
 
