@@ -16,7 +16,7 @@ import (
 
 var newRandomName string
 
-// Create a cluster environment (azure simple, multi-cluster, keyvault, etc.)
+// Demo is a function that will automate all the steps to creating an Azure Simple Cluster
 func Demo(servicePrincipal string, secret string) (err error) {
 	// Make sure host system contains all utils needed by Fabrikate
 	requiredSystemTools := []string{"git", "helm", "sh", "curl", "terraform", "az"}
@@ -66,6 +66,15 @@ func Demo(servicePrincipal string, secret string) (err error) {
 	tfApplyCmd := exec.Command("terraform", "apply", "-auto-approve", "--var", "resource_group_name=bedrock-"+randomName+"-rg", "--var", "cluster_name=bedrock-"+randomName+"-cluster", "--var", "dns_prefix=bedrock-"+randomName, "--var", "service_principal_id="+servicePrincipal, "--var", "service_principal_secret="+secret, "--var", "ssh_public_key="+sshKey, "--var", "gitops_ssh_key=deploy_key", "--var", "vnet_name=bedrock-"+randomName+"-vnet")
 	tfApplyCmd.Dir = "bedrock/cluster/environments/bedrock-" + randomName + "-cluster"
 	if output, err := tfApplyCmd.CombinedOutput(); err != nil {
+		log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
+		return err
+	}
+
+	// Add to KUBECONFIG
+	log.Info(emoji.Sprintf(":heavy_plus_sign: Add Cluster to KubeConfig"))
+	kubeConfigCmd := exec.Command("KUBECONFIG=./output/bedrock_kube_config:~/.kube/config", "kubectl", "config", "view", "--flatten", ">", "merged-config", "&&", "mv", "merged-config", "~/.kube/config")
+	kubeConfigCmd.Dir = "bedrock/cluster/environments/bedrock-" + randomName + "-cluster"
+	if output, err := kubeConfigCmd.CombinedOutput(); err != nil {
 		log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
 		return err
 	}

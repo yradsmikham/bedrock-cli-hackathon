@@ -12,7 +12,7 @@ var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "br",
+	Use:   "bedrock",
 	Short: "Scalable GitOps for Kubernetes clusters",
 	Long:  "Scalable GitOps for Kubernetes clusters",
 
@@ -59,7 +59,7 @@ func initConfig() {
 
 		// Search config in home directory with name ".fab" (without extension).
 		viper.AddConfigPath(home)
-		viper.SetConfigName(".fab")
+		viper.SetConfigName(".bedrock")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match
