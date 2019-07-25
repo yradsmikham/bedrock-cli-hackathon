@@ -18,8 +18,7 @@ func Simulate(name string) (err error) {
 	// Alternatively, just look for *common*, and run that directory first?
 
 	// Terraform Init
-	// utils.TerraformInit(name)
-	utils.TerraformInitWithOutput(name)
+	utils.TerraformInit(name)
 
 	// Terraform Plan
 	utils.TerraformPlan(name)

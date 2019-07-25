@@ -81,15 +81,13 @@ func TerraformInit(directory string) (err error) {
 	// TODO: If there is a bedrock-cli-backend.tfvars, then use that. OR default to backend.tfvars, OR just assume we're not using a backend deployment?
 	// cmd := exec.Command("terraform", "init", "-backend-config=./bedrock-backend.tfvars")
 
-	initCmd := exec.Command("terraform", "init")
-	initCmd.Dir = directory
-	if output, err := initCmd.CombinedOutput(); err != nil {
-		log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
-		return err
-	}
+	cmd := exec.Command("terraform", "init")
+	cmd.Dir = directory
+
+	run_err := runCommandWithOutput(cmd)
 
 	log.Info(emoji.Sprintf(":thumbsup: Terraform Init Complete!"))
-	return err
+	return run_err
 }
 
 func TerraformPlan(directory string) (err error) {
@@ -97,29 +95,27 @@ func TerraformPlan(directory string) (err error) {
 
 	// Terraform Plan (terraform plan -var-file=./bedrock-terraform.tfvars)
 	// TODO: Check that ./bedrock-terraform.tfvars exists. Throw error if it doesn't, (or default to terraform.tfvars?)
-	planCmd := exec.Command("terraform", "plan", "-var-file=./bedrock-terraform.tfvars")
-	planCmd.Dir = directory
-	if output, err := planCmd.CombinedOutput(); err != nil {
-		log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
-		return err
-	}
+	
+	cmd := exec.Command("terraform", "plan", "-var-file=./bedrock-terraform.tfvars")
+	cmd.Dir = directory
+
+	run_err := runCommandWithOutput(cmd)
 
 	log.Info(emoji.Sprintf(":thumbsup: Terraform Plan Complete!"))
-	return err
+	return run_err
 }
 
 func TerraformApply(directory string) (err error) {
 	log.Info(emoji.Sprintf(":hammer: Terraform Apply Starting."))
-
+	// TODO: Add confirmation input from user, suggest running Plan prior to Apply.
 	log.Info(emoji.Sprintf(":bangbang: WARNING command is attempting to deploy real resources. :bangbang:"))
 
-	applyCmd := exec.Command("terraform", "apply", "-var-file=./bedrock-terraform.tfvars", "-auto-approve")
-	applyCmd.Dir = directory
-	if output, err := applyCmd.CombinedOutput(); err != nil {
-		log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
-		return err
-	}
+		
+	cmd := exec.Command("terraform", "apply", "-var-file=./bedrock-terraform.tfvars", "-auto-approve")
+	cmd.Dir = directory
+
+	run_err := runCommandWithOutput(cmd)
 
 	log.Info(emoji.Sprintf(":thumbsup: Terraform Apply Complete!"))
-	return err
+	return run_err
 }
