@@ -62,9 +62,9 @@ func Init(environment string) (err error) {
 	return err
 }
 
-func copyCommonInfraTemplateToPath(environmentPath string, config map[string]string) (err error) {
-	filename := environmentPath + "/bedrock-config.tfvars"
-	log.Info(emoji.Sprintf(":hushed: Copying Infra variables from %s", filename))
+func copyCommonInfraTemplateToPath(commonInfraPath string, environmentPath string, environment string, config map[string]string) (err error) {
+	filename := commonInfraPath + "/bedrock-config.tfvars"
+	log.Info(emoji.Sprintf(":hushed: Copying %s variables from %s", COMMON, filename))
 
 	if len(filename) == 0 {
         return nil
@@ -93,6 +93,14 @@ func copyCommonInfraTemplateToPath(environmentPath string, config map[string]str
     if err := scanner.Err(); err != nil {
         log.Fatal(err)
         return err
+	}
+
+	destinationPath := strings.Replace(environmentPath, environment, "", -1)
+	originPath := strings.Replace(commonInfraPath, COMMON, "", -1)
+	log.Info(emoji.Sprintf(":books: Copying %s template to environment directory", COMMON))
+	if output, err := exec.Command("cp", "-r", originPath, destinationPath).CombinedOutput(); err != nil {
+		log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
+		return err
 	}
 	
 	return err
@@ -175,7 +183,7 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 		}
 
 		log.Info(emoji.Sprintf(":family: Common Infra path is set to %s", commonInfraPath))
-		copyCommonInfraTemplateToPath(commonInfraPath, singleKeyvaultConfig)
+		copyCommonInfraTemplateToPath(commonInfraPath, environmentPath, environment, singleKeyvaultConfig)
 
 		singleKeyvaultConfig["resource_group_name"] = "\"" + clusterName + "-rg\""
 		singleKeyvaultConfig["resource_group_location"] = "\"\""
