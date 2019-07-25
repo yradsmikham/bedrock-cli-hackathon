@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"strings"
 	"time"
-
+	"bufio"
 	"github.com/docker/docker/pkg/namesgenerator"
 	"github.com/kyokomi/emoji"
 	log "github.com/sirupsen/logrus"
@@ -43,9 +43,12 @@ func Init(environment string) (err error) {
 		return err
 	}
 
-	// To-do: Generate ssh keys
+	// Generate ssh keys
 	fullEnvironmentPath := environmentPath + "/" + environment
-	SSHKey, err := SSH(fullEnvironmentPath, "deploy-key")
+	SSHKey := ""
+	if environment != COMMON {
+		SSHKey, _ = SSH(fullEnvironmentPath, "deploy-key")
+	}
 	if err == nil {
 		// Save bedrock-config.tfvars
 		err = addConfigTemplate(environment, fullEnvironmentPath, randomName, SSHKey)
@@ -56,6 +59,42 @@ func Init(environment string) (err error) {
 		}
 	}
 
+	return err
+}
+
+func copyCommonInfraTemplateToPath(environmentPath string, config map[string]string) (err error) {
+	filename := environmentPath + "/bedrock-config.tfvars"
+	log.Info(emoji.Sprintf(":hushed: Copying Infra variables from %s", filename))
+
+	if len(filename) == 0 {
+        return nil
+    }
+    file, err := os.Open(filename)
+    if err != nil {
+        log.Fatal(err)
+        return err
+    }
+    defer file.Close()
+
+    scanner := bufio.NewScanner(file)
+    for scanner.Scan() {
+        line := scanner.Text()
+        if equal := strings.Index(line, "="); equal >= 0 {
+            if key := strings.TrimSpace(line[:equal]); len(key) > 0 {
+                value := ""
+                if len(line) > equal {
+                    value = strings.TrimSpace(line[equal+1:])
+                }
+				config[key] = value
+            }
+        }
+    }
+
+    if err := scanner.Err(); err != nil {
+        log.Fatal(err)
+        return err
+	}
+	
 	return err
 }
 
@@ -120,25 +159,37 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 
 		f.Close()
 
+		commonInfraPath = environmentPath
+
 		return nil
 	}
 
 	if environment == KEYVAULT {
-		// TO-DO: Need to customize the config for single keyvault
 
 		singleKeyvaultConfig := make(map[string]string)
+
+		// When common infra is not initialized, create one
+		if commonInfraPath == "" {
+			log.Info(emoji.Sprintf(":two_men_holding_hands: Common Infra path is not set, creating common infra with tenant id %s", tenant))
+			Init(COMMON)
+		}
+
+		log.Info(emoji.Sprintf(":family: Common Infra path is set to %s", commonInfraPath))
+		copyCommonInfraTemplateToPath(commonInfraPath, singleKeyvaultConfig)
 
 		singleKeyvaultConfig["resource_group_name"] = "\"" + clusterName + "-rg\""
 		singleKeyvaultConfig["resource_group_location"] = "\"\""
 		singleKeyvaultConfig["cluster_name"] = "\"" + clusterName + "\""
 		singleKeyvaultConfig["agent_vm_count"] = "\"\""
-		singleKeyvaultConfig["dns_prefix"] = "\"\""
+		singleKeyvaultConfig["agent_vm_size"] = "\"Standard_D4s_v3\""
 		singleKeyvaultConfig["service_principal_id"] = servicePrincipal
 		singleKeyvaultConfig["service_principal_secret"] = secret
 		singleKeyvaultConfig["ssh_public_key"] = "\"" + SSHKey + "\""
-		singleKeyvaultConfig["gitops_ssh_url"] = "\"\""
+		singleKeyvaultConfig["gitops_ssh_url"] = "\"" + gitopsSSHUrl + "\""
 		singleKeyvaultConfig["gitops_ssh_key"] = "\"" + environmentPath + "\""
-		singleKeyvaultConfig["vnet_name"] = "\"\""
+		singleKeyvaultConfig["keyvault_resource_group"] = singleKeyvaultConfig["global_resource_group_name"]
+		singleKeyvaultConfig["subnet_prefixes"] = singleKeyvaultConfig["subnet_prefix"]
+		singleKeyvaultConfig["vnet_subnet_id"] = "\"/subscriptions/" + subscription + "/resourceGroups/" + strings.Replace(singleKeyvaultConfig["global_resource_group_name"], "\"", "", -1) + "/providers/Microsoft.Network/virtualNetworks/" + strings.Replace(singleKeyvaultConfig["vnet_name"], "\"", "", -1) + "/subnets/" + strings.Replace(singleKeyvaultConfig["subnet_name"], "\"", "", -1) + "\""
 
 		f, err := os.Create(environmentPath + "/bedrock-config.tfvars")
 		log.Info(emoji.Sprintf(":raised_hands: Create Bedrock config file " + environmentPath + "/bedrock-config.tfvars"))
