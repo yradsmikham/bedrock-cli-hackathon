@@ -1,20 +1,21 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
 	"github.com/kyokomi/emoji"
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 )
 
 // Initializes the configuration for the given environment
 func azureSingleKeyvault(servicePrincipal string, secret string) (err error) {
 	if tenant == "" && commonInfraPath == "" {
-		log.Error(emoji.Sprintf(":confounded: One of common-infra-path and tenant needs to be specified"))
+		log.Error(emoji.Sprintf(":confounded: One of common-infra-path and tenant need to be specified"))
 		return err
 	}
-		Init(KEYVAULT)
+	Init(KEYVAULT)
 	return err
 }
+
 var commonInfraPath string
 var subscription string
 

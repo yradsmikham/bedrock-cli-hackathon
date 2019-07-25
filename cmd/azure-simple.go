@@ -7,7 +7,7 @@ import (
 var gitopsSSHUrl string
 
 // Initializes the configuration for the given environment
-func azureSimple(servicePrincipal string, secret string, gitopsSSHUrl string) (err error) {
+func azureSimple(servicePrincipal string, secret string) (err error) {
 	Init(SIMPLE)
 	return err
 }
@@ -18,7 +18,7 @@ var azureSimpleCmd = &cobra.Command{
 	Long:  `Deploys a Bedrock Simple Azure Kubernetes Service (AKS) cluster configuration`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 
-		return azureSimple(servicePrincipal, secret, gitopsSSHUrl)
+		return azureSimple(servicePrincipal, secret)
 	},
 }
 
