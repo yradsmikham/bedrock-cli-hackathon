@@ -11,7 +11,6 @@ import (
 	"github.com/docker/docker/pkg/namesgenerator"
 	"github.com/kyokomi/emoji"
 	log "github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
 )
 
 // Init functions initializes the configuration for the given environment
@@ -158,18 +157,4 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 		return nil
 	}
 	return err
-}
-
-var initCmd = &cobra.Command{
-	Use:   "init <config>",
-	Short: "Init an Azure Kubernetes Service (AKS) cluster configuration",
-	Long:  `Init an Azure Kubernetes Service (AKS) cluster configuration`,
-	RunE: func(cmd *cobra.Command, args []string) (err error) {
-
-		return Init(environment)
-	},
-}
-
-func init() {
-	rootCmd.AddCommand(initCmd)
 }

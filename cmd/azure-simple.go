@@ -10,8 +10,7 @@ func azureSimple(servicePrincipal string, secret string, gitopsSSHUrl string) (e
 	return err
 }
 
-var servicePrincipal string
-var secret string
+var gitopsSSHUrl string
 
 var azureSimpleCmd = &cobra.Command{
 	Use:   "azure-simple [--sp service-principal-app-id] [--secret service-principal-password]",
@@ -19,7 +18,7 @@ var azureSimpleCmd = &cobra.Command{
 	Long:  `Deploys a Bedrock Simple Azure Kubernetes Service (AKS) cluster configuration`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 
-		return azureSimple(servicePrincipal, secret)
+		return azureSimple(servicePrincipal, secret, gitopsSSHUrl)
 	},
 }
 
