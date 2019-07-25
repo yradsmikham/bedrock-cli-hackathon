@@ -1,13 +1,14 @@
 package cmd
 
 import (
+	"bufio"
 	"fmt"
 	"math/rand"
 	"os"
 	"os/exec"
 	"strings"
 	"time"
-	"bufio"
+
 	"github.com/docker/docker/pkg/namesgenerator"
 	"github.com/kyokomi/emoji"
 	log "github.com/sirupsen/logrus"
@@ -67,32 +68,32 @@ func copyCommonInfraTemplateToPath(commonInfraPath string, environmentPath strin
 	log.Info(emoji.Sprintf(":hushed: Copying %s variables from %s", COMMON, filename))
 
 	if len(filename) == 0 {
-        return nil
-    }
-    file, err := os.Open(filename)
-    if err != nil {
-        log.Fatal(err)
-        return err
-    }
-    defer file.Close()
+		return nil
+	}
+	file, err := os.Open(filename)
+	if err != nil {
+		log.Fatal(err)
+		return err
+	}
+	defer file.Close()
 
-    scanner := bufio.NewScanner(file)
-    for scanner.Scan() {
-        line := scanner.Text()
-        if equal := strings.Index(line, "="); equal >= 0 {
-            if key := strings.TrimSpace(line[:equal]); len(key) > 0 {
-                value := ""
-                if len(line) > equal {
-                    value = strings.TrimSpace(line[equal+1:])
-                }
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if equal := strings.Index(line, "="); equal >= 0 {
+			if key := strings.TrimSpace(line[:equal]); len(key) > 0 {
+				value := ""
+				if len(line) > equal {
+					value = strings.TrimSpace(line[equal+1:])
+				}
 				config[key] = value
-            }
-        }
-    }
+			}
+		}
+	}
 
-    if err := scanner.Err(); err != nil {
-        log.Fatal(err)
-        return err
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
+		return err
 	}
 
 	destinationPath := strings.Replace(environmentPath, environment, "", -1)
@@ -102,7 +103,7 @@ func copyCommonInfraTemplateToPath(commonInfraPath string, environmentPath strin
 		log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
 		return err
 	}
-	
+
 	return err
 }
 
@@ -125,6 +126,8 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 		azureSimpleConfig["gitops_ssh_url"] = "\"" + gitopsSSHUrl + "\""
 		azureSimpleConfig["gitops_ssh_key"] = "\"" + environmentPath + "\""
 		azureSimpleConfig["vnet_name"] = "\"" + clusterName + "-vnet\""
+		azureSimpleConfig["agent_vm_count"] = "\"" + "3" + "\""
+		azureSimpleConfig["resource_group_location"] = "\"" + "westus2" + "-vnet\""
 
 		f, err := os.Create(environmentPath + "/bedrock-config.tfvars")
 		log.Info(emoji.Sprintf(":raised_hands: Create Bedrock config file " + environmentPath + "/bedrock-config.tfvars"))
@@ -142,7 +145,6 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 	}
 
 	if environment == COMMON {
-		// TO-DO: Need to customize the config for common-infra
 		commonInfraConfig := make(map[string]string)
 
 		commonInfraConfig["global_resource_group_name"] = "\"" + clusterName + "-rg\""
@@ -206,6 +208,57 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 		}
 
 		for setting, value := range singleKeyvaultConfig {
+			f.WriteString(setting + " = " + value + "\n")
+		}
+
+		f.Close()
+
+		return nil
+	}
+
+	if environment == MULTIPLE {
+
+		multipleConfig := make(map[string]string)
+
+		// When common infra is not initialized, create one
+		if commonInfraPath == "" {
+			log.Info(emoji.Sprintf(":two_men_holding_hands: Common Infra path is not set, creating common infra with tenant id %s", tenant))
+			Init(COMMON)
+		}
+
+		log.Info(emoji.Sprintf(":family: Common Infra path is set to %s", commonInfraPath))
+		copyCommonInfraTemplateToPath(commonInfraPath, environmentPath, environment, multipleConfig)
+
+		multipleConfig["agent_vm_count"] = "\"" + "3" + "\""
+		multipleConfig["agent_vm_size"] = "\"" + "Standard_D4s_v3" + "\""
+		multipleConfig["cluster_name"] = "\"" + clusterName + "\""
+		multipleConfig["dns_prefix"] = "\"" + clusterName + "\""
+		multipleConfig["keyvault_resource_group"] = multipleConfig["global_resource_group_name"]
+		multipleConfig["service_principal_secret"] = "\"" + secret + "\""
+		multipleConfig["ssh_public_key"] = "\"" + SSHKey + "\""
+		multipleConfig["gitops_ssh_url"] = "\"" + environmentPath + "\""
+		multipleConfig["gitops_ssh_key"] = "\"" + gitopsSSHUrl + "\""
+		multipleConfig["traffic_manager_profile_name"] = "\"" + clusterName + "-tm\""
+		multipleConfig["traffic_manager_dns_name"] = "\"" + clusterName + "-tm\""
+		multipleConfig["traffic_manager_resource_group_name"] = "\"" + clusterName + "-tm-rg\""
+		multipleConfig["traffic_manager_resource_group_location"] = "\"" + "westus2" + "\""
+		multipleConfig["west_resource_group_name"] = "\"" + clusterName + "-west-rg\""
+		multipleConfig["west_resource_group_location"] = "\"" + "westus2" + "\""
+		multipleConfig["gitops_west_path"] = "\"\""
+		multipleConfig["east_resource_group_name"] = "\"" + clusterName + "-east-rg\""
+		multipleConfig["east_resource_group_location"] = "\"" + "eastus" + "\""
+		multipleConfig["gitops_east_path"] = "\"\""
+		multipleConfig["central_resource_group_name"] = "\"" + clusterName + "-central-rg\""
+		multipleConfig["central_resource_group_location"] = "\"" + "centralus" + "\""
+		multipleConfig["gitops_central_path"] = "\"\""
+
+		f, err := os.Create(environmentPath + "/bedrock-config.tfvars")
+		log.Info(emoji.Sprintf(":raised_hands: Create Bedrock config file " + environmentPath + "/bedrock-config.tfvars"))
+		if err != nil {
+			return err
+		}
+
+		for setting, value := range multipleConfig {
 			f.WriteString(setting + " = " + value + "\n")
 		}
 
