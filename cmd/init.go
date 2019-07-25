@@ -45,7 +45,10 @@ func Init(environment string) (err error) {
 
 	// Generate ssh keys
 	fullEnvironmentPath := environmentPath + "/" + environment
-	SSHKey, err := SSH(fullEnvironmentPath, "deploy-key")
+	SSHKey := ""
+	if environment != COMMON {
+		SSHKey, _ = SSH(fullEnvironmentPath, "deploy-key")
+	}
 	if err == nil {
 		// Save bedrock-config.tfvars
 		err = addConfigTemplate(environment, fullEnvironmentPath, randomName, SSHKey)
@@ -156,6 +159,8 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 
 		f.Close()
 
+		commonInfraPath = environmentPath
+
 		return nil
 	}
 
@@ -163,13 +168,14 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 
 		singleKeyvaultConfig := make(map[string]string)
 
-		if commonInfraPath != "" {
-			copyCommonInfraTemplateToPath(commonInfraPath, singleKeyvaultConfig)
-			log.Info(emoji.Sprintf(":family: Common Infra path is set to %s", commonInfraPath))
-		} else {
-			log.Info(emoji.Sprintf(":two_men_holding_hands: Common Infra path is not set"))
-			// TODO: init an azure common infra with tenant 
+		// When common infra is not initialized, create one
+		if commonInfraPath == "" {
+			log.Info(emoji.Sprintf(":two_men_holding_hands: Common Infra path is not set, creating common infra with tenant id %s", tenant))
+			Init(COMMON)
 		}
+
+		log.Info(emoji.Sprintf(":family: Common Infra path is set to %s", commonInfraPath))
+		copyCommonInfraTemplateToPath(commonInfraPath, singleKeyvaultConfig)
 
 		singleKeyvaultConfig["resource_group_name"] = "\"" + clusterName + "-rg\""
 		singleKeyvaultConfig["resource_group_location"] = "\"\""
