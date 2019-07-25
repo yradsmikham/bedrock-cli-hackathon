@@ -5,8 +5,8 @@ import (
 )
 
 // Initializes the configuration for the given environment
-func azureSimple(servicePrincipal string, secret string) (err error) {
-	Init("simple")
+func azureSimple(servicePrincipal string, secret string, gitopsSSHUrl string) (err error) {
+	Init("azure-simple")
 	return err
 }
 
@@ -26,9 +26,10 @@ var azureSimpleCmd = &cobra.Command{
 func init() {
 	azureSimpleCmd.Flags().StringVar(&servicePrincipal, "sp", "", "Service Principal App Id")
 	azureSimpleCmd.Flags().StringVar(&secret, "secret", "", "Password for the Service Principal")
+	azureSimpleCmd.Flags().StringVar(&gitopsSSHUrl, "gitops-ssh-url", "git@github.com:timfpark/fabrikate-cloud-native-manifests.git", "The git repo that contains the resource manifests that should be deployed in the cluster in ssh format.")
 	azureSimpleCmd.MarkFlagRequired("sp")
 	azureSimpleCmd.MarkFlagRequired("secret")
-	//azureSimpleCmd.MarkFlagRequired("gitops-ssh-url")
+	azureSimpleCmd.MarkFlagRequired("gitops-ssh-url")
 
 	rootCmd.AddCommand(azureSimpleCmd)
 }

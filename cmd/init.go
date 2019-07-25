@@ -39,13 +39,13 @@ func Init(environment string) (err error) {
 	os.MkdirAll(environmentPath, os.ModePerm)
 
 	log.Info(emoji.Sprintf(":flashlight: Creating New Environment"))
-	if output, err := exec.Command("cp", "-r", "bedrock/cluster/environments/azure-simple", environmentPath).CombinedOutput(); err != nil {
+	if output, err := exec.Command("cp", "-r", "bedrock/cluster/environments/"+environment, environmentPath).CombinedOutput(); err != nil {
 		log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
 		return err
 	}
 
 	// To-do: Generate ssh keys
-	fullEnvironmentPath := environmentPath + "/azure-simple"
+	fullEnvironmentPath := environmentPath + "/" + environment
 	SSHKey, err := SSH(fullEnvironmentPath, "deploy-key")
 	if err == nil {
 		// Save bedrock-config.tfvars
@@ -65,7 +65,7 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 	SSHKey = strings.TrimSuffix(SSHKey, "\n")
 
 	fmt.Println(environment)
-	if environment == "simple" {
+	if environment == "azure-simple" {
 		azureSimpleConfig := make(map[string]string)
 
 		azureSimpleConfig["resource_group_name"] = "\"" + clusterName + "-rg\""
@@ -76,7 +76,7 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 		azureSimpleConfig["service_principal_id"] = servicePrincipal
 		azureSimpleConfig["service_principal_secret"] = secret
 		azureSimpleConfig["ssh_public_key"] = "\"" + SSHKey + "\""
-		azureSimpleConfig["gitops_ssh_url"] = "\"\""
+		azureSimpleConfig["gitops_ssh_url"] = gitopsSSHUrl
 		azureSimpleConfig["gitops_ssh_key"] = "\"" + environmentPath + "\""
 		azureSimpleConfig["vnet_name"] = "\"" + clusterName + "-vnet\""
 
