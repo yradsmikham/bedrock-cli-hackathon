@@ -49,6 +49,7 @@ var info_map = map[string]map[string][]string {
 		},
 		"pre-reqs": []string{
 			"Dependent on a successful deploment of " + Bold(Green(COMMON)).String(),
+			"Service Principal needs to have Owner privileges on the Azure subscription",
 			"A Kubernetes manifest repository",
 		},
 		"examples": []string{
