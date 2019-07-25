@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"os/exec"
 	// "io/ioutil"
 
 	"github.com/kyokomi/emoji"
@@ -13,23 +12,16 @@ import (
 
 // Simulate or dry-run a bedrock environment creation (azure simple, multi-cluster, keyvault, etc.)
 func Simulate(name string) (err error) {
-	// TODO: Env vars as required, or should they be set externally?
-
+	log.Info(emoji.Sprintf(":eyes: Starting environment deployment simulation!"))
 	
 	// TODO: For each subdirectory inside the named environment directory, run terraform init and plan?
 	// Alternatively, just look for *common*, and run that directory first?
 
+	// Terraform Init
 	utils.TerraformInit(name)
 
-	// Terraform Plan (terraform plan -var-file=./bedrock-terraform.tfvars)
-	// TODO: Check that ./bedrock-terraform.tfvars exists. Throw error if it doesn't, (or default to terraform.tfvars?)
-	log.Info(emoji.Sprintf(":hammer: Terraform Plan"))
-	planCmd := exec.Command("terraform", "plan", "-var-file=./bedrock-terraform.tfvars")
-	planCmd.Dir = name
-	if output, err := planCmd.CombinedOutput(); err != nil {
-		log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
-		return err
-	}
+	// Terraform Plan
+	utils.TerraformPlan(name)
 
 	if err == nil {
 		log.Info(emoji.Sprintf(":raised_hands: Completed simulated dry-run of environment deployment!"))
