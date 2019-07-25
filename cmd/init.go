@@ -37,7 +37,7 @@ func Init(environment string) (err error) {
 	environmentPath := "bedrock/cluster/environments/" + randomName
 	os.MkdirAll(environmentPath, os.ModePerm)
 
-	log.Info(emoji.Sprintf(":flashlight: Creating New Environment"))
+	log.Info(emoji.Sprintf(":flashlight: Creating New Environment %s", environmentPath))
 	if output, err := exec.Command("cp", "-r", "bedrock/cluster/environments/"+environment, environmentPath).CombinedOutput(); err != nil {
 		log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
 		return err
@@ -64,7 +64,7 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 	SSHKey = strings.TrimSuffix(SSHKey, "\n")
 
 	fmt.Println(environment)
-	if environment == "azure-simple" {
+	if environment == SIMPLE {
 		azureSimpleConfig := make(map[string]string)
 
 		azureSimpleConfig["resource_group_name"] = "\"" + clusterName + "-rg\""
@@ -94,7 +94,7 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 		return nil
 	}
 
-	if environment == "common-infra" {
+	if environment == COMMON {
 		// TO-DO: Need to customize the config for common-infra
 		commonInfraConfig := make(map[string]string)
 
@@ -125,7 +125,7 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 		return nil
 	}
 
-	if environment == "single-keyvault" {
+	if environment == KEYVAULT {
 		// TO-DO: Need to customize the config for single keyvault
 
 		singleKeyvaultConfig := make(map[string]string)

@@ -39,7 +39,7 @@ func Demo(servicePrincipal string, secret string) (err error) {
 
 	// Copy Terraform Template
 	log.Info(emoji.Sprintf(":flashlight: Creating New Environment: bedrock-" + randomName + "-cluster"))
-	if output, err := exec.Command("cp", "-r", "bedrock/cluster/environments/azure-simple", "bedrock/cluster/environments/bedrock-"+randomName+"-cluster").CombinedOutput(); err != nil {
+	if output, err := exec.Command("cp", "-r", "bedrock/cluster/environments/" + SIMPLE, "bedrock/cluster/environments/bedrock-"+randomName+"-cluster").CombinedOutput(); err != nil {
 		log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
 		return err
 	}
