@@ -13,7 +13,7 @@ func commonInfra(servicePrincipal string, tenant string) (err error) {
 }
 
 var commonInfraCmd = &cobra.Command{
-	Use:   COMMON + " [--sp service-principal-app-id] [--tenant tenant-id]",
+	Use:   COMMON + " --sp service-principal-app-id --tenant tenant-id",
 	Short: "Deploys the Bedrock Common Infra Environment",
 	Long:  `Deploys the Bedrock Common Infra Environment`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
