@@ -22,6 +22,10 @@ var info_map = map[string]map[string][]string {
 			"Service Principal: You can generate an azure service principal using the " + Bold(Green("az ad sp create-for-rbac --subscription <id | name>")).String() + " command",
 			"A Kubernetes manifest repository",
 		},
+		"examples": []string{
+			Bold(Yellow("bedrock azure-simple --secret=84e3017a-some-guid-abcd-d9142d8a3375 --sp=558e824d-some-guid-abcd-ccdb7269d6e0")).String(),
+			Bold(Yellow("bedrock azure-simple --gitops-ssh-url=https://github.com/samiyaakhtar/hello-bedrock-manifest --secret=84e3017a-some-guid-abcd-d9142d8a3375 --sp=558e824d-some-guid-abcd-ccdb7269d6e0")).String(),
+		},
 	},
 	MULTIPLE: {
 		"info": []string{
@@ -47,6 +51,11 @@ var info_map = map[string]map[string][]string {
 			"Dependent on a successful deploment of " + Bold(Green(COMMON)).String(),
 			"A Kubernetes manifest repository",
 		},
+		"examples": []string{
+			Bold(Yellow("bedrock azure-single-keyvault --sp 558e824d-some-guid-abcd-ccdb7269d6e0 --secret 84e3017a-some-guid-abcd-d9142d8a3375 --subscription 7060bca0-some-guid-abcd-4bb1e9facfac --common-infra-path bedrock/cluster/environments/keen-montalcini/azure-common-infra")).String(),
+			Bold(Yellow("bedrock azure-single-keyvault --sp 558e824d-some-guid-abcd-ccdb7269d6e0 --secret 84e3017a-some-guid-abcd-d9142d8a3375 --subscription 7060bca0-some-guid-abcd-4bb1e9facfac --tenant 72f988bf-some-guid-abcd-2d7cd011db47")).String(),
+			Bold(Yellow("bedrock azure-single-keyvault --sp 558e824d-some-guid-abcd-ccdb7269d6e0 --secret 84e3017a-some-guid-abcd-d9142d8a3375 --subscription 7060bca0-some-guid-abcd-4bb1e9facfac --tenant 72f988bf-some-guid-abcd-2d7cd011db47 --gitops-ssh-url https://github.com/samiyaakhtar/hello-bedrock-manifest")).String(),
+		},
 	},
 	COMMON: {
 		"info": []string{
@@ -56,6 +65,9 @@ var info_map = map[string]map[string][]string {
 		},
 		"pre-reqs": []string{
 			"A storage account in Azure: set the following fields as environment variables or pass as parameters: " + Bold(Green("AZURE_STORAGE_ACCOUNT")).String() + ", " + Bold(Green("AZURE_STORAGE_KEY")).String() + ", " + Bold(Green("ARM_SUBSCRIPTION_ID")).String() + ", " + Bold(Green("ARM_CLIENT_ID")).String() + ", " + Bold(Green("ARM_CLIENT_SECRET")).String() + ", " + Bold(Green("ARM_TENANT_ID")).String(),
+		},
+		"examples": []string{
+			Bold(Yellow("bedrock azure-common-infra --sp 558e824d-some-guid-abcd-ccdb7269d6e0 --tenant 72f988bf-some-guid-abcd-2d7cd011db47")).String(),
 		},
 	},
 }
@@ -76,6 +88,12 @@ func Info(env string) (err error) {
 	fmt.Println(Bold(Cyan("\n    Pre-Requisites")))
 	for _, element := range info_map[env]["pre-reqs"] {
 		fmt.Println(emoji.Sprintf("%s %s", emoji_str, element))
+	}
+	if len(info_map[env]["examples"]) > 0 {
+		fmt.Println(Bold(Red("\n    Examples")))
+		for _, element := range info_map[env]["examples"] {
+			fmt.Println(emoji.Sprintf("%s %s", emoji_str, element))
+		}
 	}
 	return nil
 }

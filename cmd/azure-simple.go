@@ -13,7 +13,7 @@ func azureSimple(servicePrincipal string, secret string, gitopsSSHUrl string) (e
 }
 
 var azureSimpleCmd = &cobra.Command{
-	Use:   SIMPLE + " [--sp service-principal-app-id] [--secret service-principal-password] [--gitops-ssh-url manifest repo url in ssh format]",
+	Use:   SIMPLE + " --sp service-principal-app-id --secret service-principal-password [--gitops-ssh-url manifest repo url in ssh format]",
 	Short: "Deploys a Bedrock Simple Azure Kubernetes Service (AKS) cluster configuration",
 	Long:  `Deploys a Bedrock Simple Azure Kubernetes Service (AKS) cluster configuration`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -28,7 +28,6 @@ func init() {
 	azureSimpleCmd.Flags().StringVar(&gitopsSSHUrl, "gitops-ssh-url", "git@github.com:timfpark/fabrikate-cloud-native-manifests.git", "The git repo that contains the resource manifests that should be deployed in the cluster in ssh format.")
 	azureSimpleCmd.MarkFlagRequired("sp")
 	azureSimpleCmd.MarkFlagRequired("secret")
-	azureSimpleCmd.MarkFlagRequired("gitops-ssh-url")
 
 	rootCmd.AddCommand(azureSimpleCmd)
 }
