@@ -39,40 +39,6 @@ func runCommandWithOutput(cmd *exec.Cmd) (err error) {
 	return err
 }
 
-func TerraformInitWithOutput(directory string) (err error) {
-
-    cmd := exec.Command("terraform", "init")
-	cmd.Dir = directory
-
-	return runCommandWithOutput(cmd)
-
-    // // create a pipe for the output of the script
-	// cmdReader, err := cmd.StdoutPipe()
-	
-
-    // scanner := bufio.NewScanner(cmdReader)
-    // go func() {
-    //     for scanner.Scan() {
-    //         log.Info(scanner.Text())
-    //     }
-    // }()
-
-    // err = cmd.Start()
-    // if err != nil {
-    //     log.Error(os.Stderr, "Error starting Cmd", err)
-    //     return
-    // }
-
-    // err = cmd.Wait()
-    // if err != nil {
-    //     log.Error(os.Stderr, "Error waiting for Cmd", err)
-    //     return
-    // }
-
-	// log.Info(emoji.Sprintf(":thumbsup: Terraform Init Complete!"))
-	// return err
-}
-
 // Performs terraform init in the given directory
 func TerraformInit(directory string) (err error) {
 	// Terraform Initialization (terraform init -backend-config=./bedrock-backend.tfvars)
