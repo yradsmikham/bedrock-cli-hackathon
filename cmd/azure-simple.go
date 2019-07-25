@@ -4,13 +4,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var gitopsSSHUrl string
+
 // Initializes the configuration for the given environment
 func azureSimple(servicePrincipal string, secret string, gitopsSSHUrl string) (err error) {
 	Init(SIMPLE)
 	return err
 }
-
-var gitopsSSHUrl string
 
 var azureSimpleCmd = &cobra.Command{
 	Use:   SIMPLE + " [--sp service-principal-app-id] [--secret service-principal-password] [--gitops-ssh-url manifest repo url in ssh format]",

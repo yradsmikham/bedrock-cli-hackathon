@@ -72,10 +72,10 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 		azureSimpleConfig["cluster_name"] = "\"" + clusterName + "\""
 		azureSimpleConfig["agent_vm_count"] = "\"\""
 		azureSimpleConfig["dns_prefix"] = "\"" + clusterName + "\""
-		azureSimpleConfig["service_principal_id"] = servicePrincipal
-		azureSimpleConfig["service_principal_secret"] = secret
+		azureSimpleConfig["service_principal_id"] = "\"" + servicePrincipal + "\""
+		azureSimpleConfig["service_principal_secret"] = "\"" + secret + "\""
 		azureSimpleConfig["ssh_public_key"] = "\"" + SSHKey + "\""
-		azureSimpleConfig["gitops_ssh_url"] = gitopsSSHUrl
+		azureSimpleConfig["gitops_ssh_url"] = "\"" + gitopsSSHUrl + "\""
 		azureSimpleConfig["gitops_ssh_key"] = "\"" + environmentPath + "\""
 		azureSimpleConfig["vnet_name"] = "\"" + clusterName + "-vnet\""
 
@@ -98,17 +98,15 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 		// TO-DO: Need to customize the config for common-infra
 		commonInfraConfig := make(map[string]string)
 
-		commonInfraConfig["resource_group_name"] = "\"" + clusterName + "-rg\""
-		commonInfraConfig["resource_group_location"] = "\"\""
-		commonInfraConfig["cluster_name"] = "\"" + clusterName + "\""
-		commonInfraConfig["agent_vm_count"] = "\"\""
-		commonInfraConfig["dns_prefix"] = "\"\""
-		commonInfraConfig["service_principal_id"] = servicePrincipal
-		commonInfraConfig["service_principal_secret"] = secret
-		commonInfraConfig["ssh_public_key"] = "\"" + SSHKey + "\""
-		commonInfraConfig["gitops_ssh_url"] = "\"\""
-		commonInfraConfig["gitops_ssh_key"] = "\"" + environmentPath + "\""
-		commonInfraConfig["vnet_name"] = "\"\""
+		commonInfraConfig["global_resource_group_name"] = "\"" + clusterName + "-rg\""
+		commonInfraConfig["global_resource_group_location"] = "\"" + "westus2" + "\""
+		commonInfraConfig["keyvault_name"] = "\"" + clusterName + "-keyvault\""
+		commonInfraConfig["service_principal_id"] = "\"" + servicePrincipal + "\""
+		commonInfraConfig["tenant_id"] = "\"" + tenant + "\""
+		commonInfraConfig["address_space"] = "\"" + "10.39.0.0/16" + "\""
+		commonInfraConfig["subnet_prefix"] = "\"" + "10.39.0.0./24" + "\""
+		commonInfraConfig["subnet_name"] = "\"" + clusterName + "-subnet\""
+		commonInfraConfig["vnet_name"] = "\"" + clusterName + "-vnet\""
 
 		f, err := os.Create(environmentPath + "/bedrock-config.tfvars")
 		log.Info(emoji.Sprintf(":raised_hands: Create Bedrock config file " + environmentPath + "/bedrock-config.tfvars"))
