@@ -18,10 +18,6 @@ Bedrock CLI aims to achieve the following:
   1. Accelerate the upskilling required to onboard onto Bedrock.
   2. More scripting and automation around cluster creation, deletion, or updates for development purposes.
 
-## Design
-
-![Bedrock CLI](./images/bedrock-cli-diagram.png)
-
 ## Getting Started
 
 Install the latest Bedrock CLI on your local machine from the releases, unzipping the appropriate binary and placing the bedrock executable in your path. The Bedrock cli tool, azure cli, terraform, and git are the only tools you need to have installed.
