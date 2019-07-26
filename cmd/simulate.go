@@ -13,7 +13,7 @@ import (
 // Simulate or dry-run a bedrock environment creation (azure simple, multi-cluster, keyvault, etc.)
 func Simulate(name string) (err error) {
 	log.Info(emoji.Sprintf(":eyes: Starting environment deployment simulation!"))
-	
+
 	// TODO: For each subdirectory inside the named environment directory, run terraform init and plan?
 	// Alternatively, just look for *common*, and run that directory first?
 
@@ -37,10 +37,10 @@ var simulateCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 
 		var name = "unique-environment-name"
-		
+
 		if len(args) > 0 {
 			name = args[0]
-		} 
+		}
 		return Simulate(name)
 	},
 }
