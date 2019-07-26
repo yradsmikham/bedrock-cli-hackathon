@@ -43,6 +43,6 @@ bedrock demo --sp <service principal id> --secret <password for the service prin
 7. Executes `terraform apply`.
 8. Adds the newly created Bedrock Azure Simple Cluster to your local KUBECONFIG.
 
-![Bedrock CLI Demo](./images/bedrock-demo.gif)
+![Bedrock CLI Demo](./images/bedrock_demo.gif)
 
 The Bedrock CLI also supports other environments such as `azure-common-infra`, `azure-single-keyvault`, and `azure-multiple-clusters`. Check out `bedrock info <environment>` for more information on how to create these environments with the CLI.
