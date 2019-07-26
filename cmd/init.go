@@ -169,6 +169,25 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 
 		f.Close()
 
+		commonInfraBackendConfig := make(map[string]string)
+
+		commonInfraBackendConfig["storage_account_name"] = "\"" + storageAccount + "\""
+		commonInfraBackendConfig["access_key"] = "\"" + accessKey + "\""
+		commonInfraBackendConfig["container_name"] = "\"" + containerName + "\""
+		commonInfraBackendConfig["key"] = "\"" + "tfstate-common-infra-" + clusterName + "\""
+
+		backendFile, err := os.Create(environmentPath + "/bedrock-backend-config.tfvars")
+		log.Info(emoji.Sprintf(":raised_hands: Create Bedrock backend config file " + environmentPath + "/bedrock-backend-config.tfvars"))
+		if err != nil {
+			return err
+		}
+
+		for setting, value := range commonInfraBackendConfig {
+			backendFile.WriteString(setting + " = " + value + "\n")
+		}
+
+		backendFile.Close()
+
 		commonInfraPath = environmentPath
 
 		return nil

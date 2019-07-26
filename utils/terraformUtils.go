@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"os"
 	"os/exec"
+
 	"github.com/kyokomi/emoji"
 	log "github.com/sirupsen/logrus"
 )
@@ -12,28 +13,28 @@ func runCommandWithOutput(cmd *exec.Cmd) (err error) {
 
 	// create a pipe for the output of the script
 	cmdReader, err := cmd.StdoutPipe()
-    if err != nil {
-        log.Error(os.Stderr, "Error creating StdoutPipe for cmd", err)
-        return
-    }
+	if err != nil {
+		log.Error(os.Stderr, "Error creating StdoutPipe for cmd", err)
+		return
+	}
 
-    scanner := bufio.NewScanner(cmdReader)
-    go func() {
-        for scanner.Scan() {
-            log.Info(scanner.Text())
-        }
-    }()
+	scanner := bufio.NewScanner(cmdReader)
+	go func() {
+		for scanner.Scan() {
+			log.Info(scanner.Text())
+		}
+	}()
 
-    err = cmd.Start()
-    if err != nil {
-        log.Error(os.Stderr, "Error starting Cmd", err)
-        return
-    }
+	err = cmd.Start()
+	if err != nil {
+		log.Error(os.Stderr, "Error starting Cmd", err)
+		return
+	}
 
-    err = cmd.Wait()
-    if err != nil {
-        log.Error(os.Stderr, "Error waiting for Cmd", err)
-        return
+	err = cmd.Wait()
+	if err != nil {
+		log.Error(os.Stderr, "Error waiting for Cmd", err)
+		return
 	}
 
 	return err
@@ -47,7 +48,7 @@ func TerraformInit(directory string) (err error) {
 	// TODO: If there is a bedrock-cli-backend.tfvars, then use that. OR default to backend.tfvars, OR just assume we're not using a backend deployment?
 	// cmd := exec.Command("terraform", "init", "-backend-config=./bedrock-backend.tfvars")
 
-	cmd := exec.Command("terraform", "init")
+	cmd := exec.Command("terraform", "init", "-backend-config=./bedrock-backend-config.tfvars")
 	cmd.Dir = directory
 
 	run_err := runCommandWithOutput(cmd)
@@ -61,8 +62,8 @@ func TerraformPlan(directory string) (err error) {
 
 	// Terraform Plan (terraform plan -var-file=./bedrock-terraform.tfvars)
 	// TODO: Check that ./bedrock-terraform.tfvars exists. Throw error if it doesn't, (or default to terraform.tfvars?)
-	
-	cmd := exec.Command("terraform", "plan", "-var-file=./bedrock-terraform.tfvars")
+
+	cmd := exec.Command("terraform", "plan", "-var-file=./bedrock-config.tfvars")
 	cmd.Dir = directory
 
 	run_err := runCommandWithOutput(cmd)
@@ -76,7 +77,6 @@ func TerraformApply(directory string) (err error) {
 	// TODO: Add confirmation input from user, suggest running Plan prior to Apply.
 	log.Info(emoji.Sprintf(":bangbang: WARNING command is attempting to deploy real resources. :bangbang:"))
 
-		
 	cmd := exec.Command("terraform", "apply", "-var-file=./bedrock-terraform.tfvars", "-auto-approve")
 	cmd.Dir = directory
 
