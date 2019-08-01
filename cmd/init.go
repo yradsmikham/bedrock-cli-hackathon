@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"bufio"
-	"fmt"
 	"math/rand"
 	"os"
 	"os/exec"
@@ -52,10 +51,9 @@ func Init(environment string) (err error) {
 	}
 	if err == nil {
 		// Save bedrock-config.tfvars
-		err = addConfigTemplate(environment, fullEnvironmentPath, randomName, SSHKey)
+		err = addConfigTemplate(environment, fullEnvironmentPath, randomName, SSHKey, randomName)
 
 		if err == nil {
-			log.Info(emoji.Sprintf(":raised_hands: Cluster " + fullEnvironmentPath + " has been successfully created!"))
 			return nil
 		}
 	}
@@ -108,10 +106,9 @@ func copyCommonInfraTemplateToPath(commonInfraPath string, environmentPath strin
 }
 
 // Adds a blank bedrock config template
-func addConfigTemplate(environment string, environmentPath string, clusterName string, SSHKey string) (err error) {
+func addConfigTemplate(environment string, environmentPath string, clusterName string, SSHKey string, randomName string) (err error) {
 	SSHKey = strings.TrimSuffix(SSHKey, "\n")
 
-	fmt.Println(environment)
 	if environment == SIMPLE {
 		azureSimpleConfig := make(map[string]string)
 
@@ -124,10 +121,10 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 		azureSimpleConfig["service_principal_secret"] = "\"" + secret + "\""
 		azureSimpleConfig["ssh_public_key"] = "\"" + SSHKey + "\""
 		azureSimpleConfig["gitops_ssh_url"] = "\"" + gitopsSSHUrl + "\""
-		azureSimpleConfig["gitops_ssh_key"] = "\"" + environmentPath + "\""
+		azureSimpleConfig["gitops_ssh_key"] = "\"" + "deploy-key" + "\""
 		azureSimpleConfig["vnet_name"] = "\"" + clusterName + "-vnet\""
 		azureSimpleConfig["agent_vm_count"] = "\"" + "3" + "\""
-		azureSimpleConfig["resource_group_location"] = "\"" + "westus2" + "-vnet\""
+		azureSimpleConfig["resource_group_location"] = "\"" + "westus2" + "\""
 
 		f, err := os.Create(environmentPath + "/bedrock-config.tfvars")
 		log.Info(emoji.Sprintf(":raised_hands: Create Bedrock config file " + environmentPath + "/bedrock-config.tfvars"))
@@ -141,6 +138,9 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 
 		f.Close()
 
+		log.Info(emoji.Sprintf(":raised_hands: Azure Simple cluster environment " + environmentPath + " has been successfully created!"))
+		log.Info(emoji.Sprintf(":white_check_mark: To proceed with deploying the cluster, run 'bedrock simulate " + randomName + "' and then 'bedrock deploy " + randomName + "'"))
+
 		return nil
 	}
 
@@ -149,13 +149,15 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 
 		commonInfraConfig["global_resource_group_name"] = "\"" + clusterName + "-rg\""
 		commonInfraConfig["global_resource_group_location"] = "\"" + "westus2" + "\""
-		commonInfraConfig["keyvault_name"] = "\"" + clusterName + "-keyvault\""
+		commonInfraConfig["keyvault_name"] = "\"" + clusterName + "-kv\""
 		commonInfraConfig["service_principal_id"] = "\"" + servicePrincipal + "\""
 		commonInfraConfig["tenant_id"] = "\"" + tenant + "\""
 		commonInfraConfig["address_space"] = "\"" + "10.39.0.0/16" + "\""
 		commonInfraConfig["subnet_prefix"] = "\"" + "10.39.0.0./24" + "\""
 		commonInfraConfig["subnet_name"] = "\"" + clusterName + "-subnet\""
 		commonInfraConfig["vnet_name"] = "\"" + clusterName + "-vnet\""
+		commonInfraConfig["subscription"] = "\"" + subscription + "\""
+		commonInfraConfig["secret"] = "\"" + secret + "\""
 
 		f, err := os.Create(environmentPath + "/bedrock-config.tfvars")
 		log.Info(emoji.Sprintf(":raised_hands: Create Bedrock config file " + environmentPath + "/bedrock-config.tfvars"))
@@ -168,6 +170,18 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 		}
 
 		f.Close()
+
+		config_file, err := os.Create(environmentPath + "/bedrock-config.toml")
+		log.Info(emoji.Sprintf(":raised_hands: Create Bedrock config file " + environmentPath + "/bedrock-config.tfvars"))
+		if err != nil {
+			return err
+		}
+
+		for setting, value := range commonInfraConfig {
+			config_file.WriteString(setting + " = " + value + "\n")
+		}
+
+		config_file.Close()
 
 		commonInfraBackendConfig := make(map[string]string)
 
@@ -207,15 +221,15 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 		copyCommonInfraTemplateToPath(commonInfraPath, environmentPath, environment, singleKeyvaultConfig)
 
 		singleKeyvaultConfig["resource_group_name"] = "\"" + clusterName + "-rg\""
-		singleKeyvaultConfig["resource_group_location"] = "\"\""
+		singleKeyvaultConfig["resource_group_location"] = "\"" + "westus2" + "\""
 		singleKeyvaultConfig["cluster_name"] = "\"" + clusterName + "\""
-		singleKeyvaultConfig["agent_vm_count"] = "\"\""
+		singleKeyvaultConfig["agent_vm_count"] = "\"" + "3" + "\""
 		singleKeyvaultConfig["agent_vm_size"] = "\"Standard_D4s_v3\""
-		singleKeyvaultConfig["service_principal_id"] = servicePrincipal
-		singleKeyvaultConfig["service_principal_secret"] = secret
+		singleKeyvaultConfig["service_principal_id"] = "\"" + servicePrincipal + "\""
+		singleKeyvaultConfig["service_principal_secret"] = "\"" + secret + "\""
 		singleKeyvaultConfig["ssh_public_key"] = "\"" + SSHKey + "\""
 		singleKeyvaultConfig["gitops_ssh_url"] = "\"" + gitopsSSHUrl + "\""
-		singleKeyvaultConfig["gitops_ssh_key"] = "\"" + environmentPath + "\""
+		singleKeyvaultConfig["gitops_ssh_key"] = "\"" + "deploy-key" + "\""
 		singleKeyvaultConfig["keyvault_resource_group"] = singleKeyvaultConfig["global_resource_group_name"]
 		singleKeyvaultConfig["subnet_prefixes"] = singleKeyvaultConfig["subnet_prefix"]
 		singleKeyvaultConfig["vnet_subnet_id"] = "\"/subscriptions/" + subscription + "/resourceGroups/" + strings.Replace(singleKeyvaultConfig["global_resource_group_name"], "\"", "", -1) + "/providers/Microsoft.Network/virtualNetworks/" + strings.Replace(singleKeyvaultConfig["vnet_name"], "\"", "", -1) + "/subnets/" + strings.Replace(singleKeyvaultConfig["subnet_name"], "\"", "", -1) + "\""
@@ -231,6 +245,28 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 		}
 
 		f.Close()
+
+		singleKeyvaultBackendConfig := make(map[string]string)
+
+		singleKeyvaultBackendConfig["storage_account_name"] = "\"" + storageAccount + "\""
+		singleKeyvaultBackendConfig["access_key"] = "\"" + accessKey + "\""
+		singleKeyvaultBackendConfig["container_name"] = "\"" + containerName + "\""
+		singleKeyvaultBackendConfig["key"] = "\"" + "tfstate-single-keyvault-" + clusterName + "\""
+
+		kvBackendFile, err := os.Create(environmentPath + "/bedrock-backend-config.tfvars")
+		log.Info(emoji.Sprintf(":raised_hands: Create Bedrock backend config file " + environmentPath + "/bedrock-backend-config.tfvars"))
+		if err != nil {
+			return err
+		}
+
+		for setting, value := range singleKeyvaultBackendConfig {
+			kvBackendFile.WriteString(setting + " = " + value + "\n")
+		}
+
+		kvBackendFile.Close()
+
+		log.Info(emoji.Sprintf(":raised_hands: Azure Single Keyvault cluster environment " + environmentPath + " has been successfully created!"))
+		log.Info(emoji.Sprintf(":white_check_mark: To proceed with deploying the cluster, run 'bedrock simulate " + randomName + "' and then 'bedrock deploy " + randomName + "'"))
 
 		return nil
 	}
@@ -255,8 +291,8 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 		multipleConfig["keyvault_resource_group"] = multipleConfig["global_resource_group_name"]
 		multipleConfig["service_principal_secret"] = "\"" + secret + "\""
 		multipleConfig["ssh_public_key"] = "\"" + SSHKey + "\""
-		multipleConfig["gitops_ssh_url"] = "\"" + environmentPath + "\""
-		multipleConfig["gitops_ssh_key"] = "\"" + gitopsSSHUrl + "\""
+		multipleConfig["gitops_ssh_url"] = "\"" + gitopsSSHUrl + "\""
+		multipleConfig["gitops_ssh_key"] = "\"" + "deploy-key" + "\""
 		multipleConfig["traffic_manager_profile_name"] = "\"" + clusterName + "-tm\""
 		multipleConfig["traffic_manager_dns_name"] = "\"" + clusterName + "-tm\""
 		multipleConfig["traffic_manager_resource_group_name"] = "\"" + clusterName + "-tm-rg\""
@@ -282,6 +318,9 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 		}
 
 		f.Close()
+
+		log.Info(emoji.Sprintf(":raised_hands: Azure Multiple cluster environment " + environmentPath + " has been successfully created!"))
+		log.Info(emoji.Sprintf(":white_check_mark: To proceed with deploying the cluster, run 'bedrock simulate " + randomName + "' and then 'bedrock deploy " + randomName + "'"))
 
 		return nil
 	}
