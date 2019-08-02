@@ -1,15 +1,16 @@
 package cmd
 
 import (
-	"github.com/kyokomi/emoji"
-	log "github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
 	"io/ioutil"
 	"os"
 	"os/exec"
+
+	"github.com/kyokomi/emoji"
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 )
 
-// Create a new SSH key
+// SSH function will generate a new SSH Key using `ssh-keygen`
 func SSH(path string, name string) (key string, err error) {
 	log.Info(emoji.Sprintf(":lock_with_ink_pen: Creating new SSH with name " + name))
 

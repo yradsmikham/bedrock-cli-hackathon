@@ -3,14 +3,15 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"math/rand"
+	"time"
+
 	"github.com/kyokomi/emoji"
 	. "github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
-	"math/rand"
-	"time"
 )
 
-var emoji_list = []string{
+var emojiList = []string{
 	":boom:", ":sparkles:", ":alien:", ":cat:", ":honeybee:", ":globe_with_meridians:", ":new_moon:", ":full_moon:", ":earth_americas:", ":earth_asia:", ":tropical_fish:", ":penguin:", ":baby_chick:", ":koala:", ":zap:", ":cyclone:", ":dog:", ":bear:", ":panda_face:", ":maple_leaf:", ":mushroom:", ":full_moon_with_face:", ":crescent_moon:", ":snowflake:", ":frog:", ":monkey_face:", ":snail:", ":rabbit2:", ":new_moon_with_face:", ":bulb:", ":floppy_disk:", ":tennis:", ":gem:", ":baby_bottle:", ":birthday:", ":green_apple:", ":basketball:", ":coffee:", ":tangerine:", ":soccer:", ":game_die:", ":tea:", ":cookie:", ":tomato:", ":lemon:", ":pizza:", ":apple:", ":doughnut:", ":package:", ":dvd:", ":baseball:", ":dart:",
 }
 var info_map = map[string]map[string][]string{
@@ -76,25 +77,25 @@ var info_map = map[string]map[string][]string{
 
 func GetEmoji() (emoji string) {
 	rand.Seed(time.Now().UnixNano())
-	rand_num := rand.Intn(len(emoji_list))
-	return emoji_list[rand_num]
+	randNum := rand.Intn(len(emojiList))
+	return emojiList[randNum]
 }
 
 func Info(env string) (err error) {
-	var emoji_str = GetEmoji()
+	var emojiStr = GetEmoji()
 
 	fmt.Println()
 	for _, element := range info_map[env]["info"] {
-		fmt.Println(emoji.Sprintf("%s %s", emoji_str, element))
+		fmt.Println(emoji.Sprintf("%s %s", emojiStr, element))
 	}
 	fmt.Println(Bold(Cyan("\n    Pre-Requisites")))
 	for _, element := range info_map[env]["pre-reqs"] {
-		fmt.Println(emoji.Sprintf("%s %s", emoji_str, element))
+		fmt.Println(emoji.Sprintf("%s %s", emojiStr, element))
 	}
 	if len(info_map[env]["examples"]) > 0 {
 		fmt.Println(Bold(Red("\n    Examples")))
 		for _, element := range info_map[env]["examples"] {
-			fmt.Println(emoji.Sprintf("%s %s", emoji_str, element))
+			fmt.Println(emoji.Sprintf("%s %s", emojiStr, element))
 		}
 	}
 	return nil

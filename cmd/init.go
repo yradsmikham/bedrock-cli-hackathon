@@ -171,17 +171,17 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 
 		f.Close()
 
-		config_file, err := os.Create(fullEnvironmentPath + "/bedrock-config.toml")
+		configFile, err := os.Create(fullEnvironmentPath + "/bedrock-config.toml")
 		log.Info(emoji.Sprintf(":raised_hands: Create Bedrock config file " + fullEnvironmentPath + "/bedrock-config.tfvars"))
 		if err != nil {
 			return err
 		}
 
 		for setting, value := range commonInfraConfig {
-			config_file.WriteString(setting + " = " + value + "\n")
+			configFile.WriteString(setting + " = " + value + "\n")
 		}
 
-		config_file.Close()
+		configFile.Close()
 
 		commonInfraBackendConfig := make(map[string]string)
 
