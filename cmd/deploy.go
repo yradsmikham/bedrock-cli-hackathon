@@ -13,7 +13,7 @@ import (
 
 // Deploy a bedrock environment by executing `terraform apply`
 func Deploy(name string) (err error) {
-	log.Info(emoji.Sprintf(":eyes: Starting Environment Deployment!"))
+	log.Info(emoji.Sprintf(":rocket: Starting Environment Deployment!"))
 
 	files, err := ioutil.ReadDir(name)
 	if err != nil {

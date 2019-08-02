@@ -96,7 +96,7 @@ func Simulate(name string) (err error) {
 
 	if err == nil {
 		log.Info(emoji.Sprintf(":raised_hands: Completed simulated dry-run of environment deployment!"))
-		log.Info(emoji.Sprintf(":white_check_mark: To proceed, run 'bedrock deploy " + name))
+		log.Info(emoji.Sprintf(":white_check_mark: To proceed, run 'bedrock deploy " + name + "'"))
 	}
 
 	return err

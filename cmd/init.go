@@ -139,7 +139,7 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 		f.Close()
 
 		log.Info(emoji.Sprintf(":raised_hands: Azure Simple cluster environment " + fullEnvironmentPath + " has been successfully created!"))
-		log.Info(emoji.Sprintf(":white_check_mark: To proceed, run 'bedrock simulate " + fullEnvironmentPath))
+		log.Info(emoji.Sprintf(":white_check_mark: To proceed, run 'bedrock simulate " + environmentPath + "'"))
 
 		return nil
 	}
@@ -153,7 +153,7 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 		commonInfraConfig["service_principal_id"] = "\"" + servicePrincipal + "\""
 		commonInfraConfig["tenant_id"] = "\"" + tenant + "\""
 		commonInfraConfig["address_space"] = "\"" + "10.39.0.0/16" + "\""
-		commonInfraConfig["subnet_prefix"] = "\"" + "10.39.0.0./24" + "\""
+		commonInfraConfig["subnet_prefix"] = "\"" + "10.39.0.0/24" + "\""
 		commonInfraConfig["subnet_name"] = "\"" + clusterName + "-subnet\""
 		commonInfraConfig["vnet_name"] = "\"" + clusterName + "-vnet\""
 		commonInfraConfig["subscription"] = "\"" + subscription + "\""
@@ -266,7 +266,7 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 		kvBackendFile.Close()
 
 		log.Info(emoji.Sprintf(":raised_hands: Azure Single Keyvault cluster environment " + fullEnvironmentPath + " has been successfully created!"))
-		log.Info(emoji.Sprintf(":white_check_mark: To proceed, run 'bedrock simulate " + environmentPath))
+		log.Info(emoji.Sprintf(":white_check_mark: To proceed, run 'bedrock simulate " + environmentPath + "'"))
 
 		return nil
 	}
@@ -320,7 +320,7 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 		f.Close()
 
 		log.Info(emoji.Sprintf(":raised_hands: Azure Multiple cluster environment " + fullEnvironmentPath + " has been successfully created!"))
-		log.Info(emoji.Sprintf(":white_check_mark: To proceed, run 'bedrock simulate " + environmentPath))
+		log.Info(emoji.Sprintf(":white_check_mark: To proceed, run 'bedrock simulate " + environmentPath + "'"))
 
 		return nil
 	}
