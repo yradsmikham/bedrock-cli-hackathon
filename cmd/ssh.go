@@ -1,12 +1,12 @@
 package cmd
 
 import (
-	"os/exec"
-    "io/ioutil"
 	"github.com/kyokomi/emoji"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"io/ioutil"
 	"os"
+	"os/exec"
 )
 
 // Create a new SSH key
@@ -24,15 +24,15 @@ func SSH(path string, name string) (key string, err error) {
 
 	// Create SSH Keys
 	log.Info(emoji.Sprintf(":closed_lock_with_key: Creating New SSH Keys"))
-	if output, err := exec.Command("ssh-keygen",  "-t", "rsa", "-b", "4096", "-f", keyPath, "-P", "''").CombinedOutput(); err != nil {
+	if output, err := exec.Command("ssh-keygen", "-t", "rsa", "-b", "4096", "-f", keyPath, "-P", "''").CombinedOutput(); err != nil {
 		log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
 		return "", err
 	}
 
 	if err == nil {
-		log.Info(emoji.Sprintf(":raised_hands: SSH key " + name + " has been created!" ))
+		log.Info(emoji.Sprintf(":raised_hands: SSH key " + name + " has been created!"))
 		log.Info(emoji.Sprintf(":pray: Add the following SSH key to 'Deploy Keys' in your Manifest repository"))
-		file, err := ioutil.ReadFile(keyPath + ".pub") 
+		file, err := ioutil.ReadFile(keyPath + ".pub")
 		if err != nil {
 			log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, file))
 			return "", err
@@ -52,7 +52,7 @@ var sshCmd = &cobra.Command{
 		var name = "id_rsa"
 		if len(args) > 0 {
 			name = args[0]
-		} 
+		}
 
 		currentPath, err := os.Getwd()
 

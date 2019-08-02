@@ -2,17 +2,18 @@ package cmd
 
 import (
 	"errors"
-	"github.com/kyokomi/emoji"
-	"github.com/spf13/cobra"
 	"fmt"
+	"github.com/kyokomi/emoji"
+	. "github.com/logrusorgru/aurora"
+	"github.com/spf13/cobra"
 	"math/rand"
 	"time"
-	. "github.com/logrusorgru/aurora"
 )
-var emoji_list = []string {
-	":boom:", ":sparkles:", ":alien:", ":cat:", ":honeybee:", ":globe_with_meridians:", ":new_moon:", ":full_moon:", ":earth_americas:", ":earth_asia:", ":tropical_fish:", ":penguin:", ":baby_chick:", ":koala:", ":zap:", ":cyclone:", ":dog:", ":bear:", ":panda_face:", ":maple_leaf:", ":mushroom:", ":full_moon_with_face:", ":crescent_moon:", ":snowflake:", ":frog:", ":monkey_face:", ":snail:", ":rabbit2:", ":new_moon_with_face:", ":bulb:", ":floppy_disk:", ":tennis:", ":gem:", ":baby_bottle:", ":birthday:", ":green_apple:", ":basketball:", ":coffee:", ":tangerine:", ":soccer:", ":game_die:", ":tea:", ":cookie:", ":tomato:", ":lemon:", ":pizza:", ":apple:", ":doughnut:", ":package:", ":dvd:", ":baseball:",":dart:",
+
+var emoji_list = []string{
+	":boom:", ":sparkles:", ":alien:", ":cat:", ":honeybee:", ":globe_with_meridians:", ":new_moon:", ":full_moon:", ":earth_americas:", ":earth_asia:", ":tropical_fish:", ":penguin:", ":baby_chick:", ":koala:", ":zap:", ":cyclone:", ":dog:", ":bear:", ":panda_face:", ":maple_leaf:", ":mushroom:", ":full_moon_with_face:", ":crescent_moon:", ":snowflake:", ":frog:", ":monkey_face:", ":snail:", ":rabbit2:", ":new_moon_with_face:", ":bulb:", ":floppy_disk:", ":tennis:", ":gem:", ":baby_bottle:", ":birthday:", ":green_apple:", ":basketball:", ":coffee:", ":tangerine:", ":soccer:", ":game_die:", ":tea:", ":cookie:", ":tomato:", ":lemon:", ":pizza:", ":apple:", ":doughnut:", ":package:", ":dvd:", ":baseball:", ":dart:",
 }
-var info_map = map[string]map[string][]string {
+var info_map = map[string]map[string][]string{
 	SIMPLE: {
 		"info": []string{
 			Bold(Green(SIMPLE)).String() + " environment is a non-production ready template provided to easily try out Bedrock on Azure",
@@ -82,7 +83,7 @@ func GetEmoji() (emoji string) {
 func Info(env string) (err error) {
 	var emoji_str = GetEmoji()
 
-	fmt.Println();
+	fmt.Println()
 	for _, element := range info_map[env]["info"] {
 		fmt.Println(emoji.Sprintf("%s %s", emoji_str, element))
 	}
@@ -104,7 +105,7 @@ var infoCmd = &cobra.Command{
 	Short: "Get details about an environment",
 	Long:  `Get details about an environment`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		if (len(args) == 0) {
+		if len(args) == 0 {
 			return errors.New("You need to specify an environment: " + SIMPLE + ", " + MULTIPLE + ", " + KEYVAULT + ", " + COMMON)
 
 		}

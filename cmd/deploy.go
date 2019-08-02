@@ -9,7 +9,8 @@ import (
 	"github.com/kyokomi/emoji"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/yradsmikham/bedrock-cli/utils"
+
+	"../utils"
 )
 
 // Deploy a bedrock environment by executing `terraform apply`
@@ -24,12 +25,13 @@ func Deploy(name string) (err error) {
 		log.Info(emoji.Sprintf(":eyes: Searching for azure-common-infra environment..."))
 		if f.Name() == "azure-common-infra" {
 			log.Info(emoji.Sprintf(":round_pushpin: Azure-common-infra environment found!"))
+			setEnv(name)
 
 			// Terraform Init
-			utils.TerraformInit(name + "/azure-common-infra")
+			utils.TerraformInitBackend(name + "/azure-common-infra")
 
 			// Terraform Plan
-			utils.TerraformPlan(name + "/azure-common-infra")
+			utils.TerraformApply(name + "/azure-common-infra")
 
 			break
 		}

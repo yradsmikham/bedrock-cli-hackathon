@@ -1,7 +1,8 @@
 package cmd
+
 const (
-	SIMPLE = "azure-simple"
+	SIMPLE   = "azure-simple"
 	KEYVAULT = "azure-single-keyvault"
 	MULTIPLE = "azure-multiple-clusters"
-	COMMON = "azure-common-infra"
+	COMMON   = "azure-common-infra"
 )

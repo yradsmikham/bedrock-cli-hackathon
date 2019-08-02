@@ -5,11 +5,11 @@ import (
 	"io/ioutil"
 	"os"
 
+	"../utils"
 	"github.com/kyokomi/emoji"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/yradsmikham/bedrock-cli/utils"
 )
 
 func setEnv(name string) (err error) {
@@ -42,9 +42,11 @@ func Simulate(name string) (err error) {
 		log.Info(emoji.Sprintf(":eyes: Searching for Azure-Common-Infra environment..."))
 		if f.Name() == "azure-common-infra" {
 			log.Info(emoji.Sprintf(":round_pushpin: Azure-Common-Infra environment found!"))
+			log.Info(emoji.Sprintf(":dancers: Simulating Azure-Common-Infra Environment"))
+			setEnv(name)
 
 			// Terraform Init
-			utils.TerraformInit(name + "/azure-common-infra")
+			utils.TerraformInitBackend(name + "/azure-common-infra")
 
 			// Terraform Plan
 			utils.TerraformPlan(name + "/azure-common-infra")
@@ -94,6 +96,7 @@ func Simulate(name string) (err error) {
 
 	if err == nil {
 		log.Info(emoji.Sprintf(":raised_hands: Completed simulated dry-run of environment deployment!"))
+		log.Info(emoji.Sprintf(":white_check_mark: To proceed, run 'bedrock deploy " + name))
 	}
 
 	return err

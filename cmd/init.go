@@ -51,7 +51,7 @@ func Init(environment string) (err error) {
 	}
 	if err == nil {
 		// Save bedrock-config.tfvars
-		err = addConfigTemplate(environment, fullEnvironmentPath, randomName, SSHKey, randomName)
+		err = addConfigTemplate(environment, fullEnvironmentPath, environmentPath, randomName, SSHKey, randomName)
 
 		if err == nil {
 			return nil
@@ -61,7 +61,7 @@ func Init(environment string) (err error) {
 	return err
 }
 
-func copyCommonInfraTemplateToPath(commonInfraPath string, environmentPath string, environment string, config map[string]string) (err error) {
+func copyCommonInfraTemplateToPath(commonInfraPath string, fullEnvironmentPath string, environmentPath string, environment string, config map[string]string) (err error) {
 	filename := commonInfraPath + "/bedrock-config.tfvars"
 	log.Info(emoji.Sprintf(":hushed: Copying %s variables from %s", COMMON, filename))
 
@@ -94,7 +94,7 @@ func copyCommonInfraTemplateToPath(commonInfraPath string, environmentPath strin
 		return err
 	}
 
-	destinationPath := strings.Replace(environmentPath, environment, "", -1)
+	destinationPath := strings.Replace(fullEnvironmentPath, environment, "", -1)
 	originPath := strings.Replace(commonInfraPath, COMMON, "", -1)
 	log.Info(emoji.Sprintf(":books: Copying %s template to environment directory", COMMON))
 	if output, err := exec.Command("cp", "-r", originPath, destinationPath).CombinedOutput(); err != nil {
@@ -106,7 +106,7 @@ func copyCommonInfraTemplateToPath(commonInfraPath string, environmentPath strin
 }
 
 // Adds a blank bedrock config template
-func addConfigTemplate(environment string, environmentPath string, clusterName string, SSHKey string, randomName string) (err error) {
+func addConfigTemplate(environment string, fullEnvironmentPath string, environmentPath string, clusterName string, SSHKey string, randomName string) (err error) {
 	SSHKey = strings.TrimSuffix(SSHKey, "\n")
 
 	if environment == SIMPLE {
@@ -126,8 +126,8 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 		azureSimpleConfig["agent_vm_count"] = "\"" + "3" + "\""
 		azureSimpleConfig["resource_group_location"] = "\"" + "westus2" + "\""
 
-		f, err := os.Create(environmentPath + "/bedrock-config.tfvars")
-		log.Info(emoji.Sprintf(":raised_hands: Create Bedrock config file " + environmentPath + "/bedrock-config.tfvars"))
+		f, err := os.Create(fullEnvironmentPath + "/bedrock-config.tfvars")
+		log.Info(emoji.Sprintf(":raised_hands: Create Bedrock config file " + fullEnvironmentPath + "/bedrock-config.tfvars"))
 		if err != nil {
 			return err
 		}
@@ -138,8 +138,8 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 
 		f.Close()
 
-		log.Info(emoji.Sprintf(":raised_hands: Azure Simple cluster environment " + environmentPath + " has been successfully created!"))
-		log.Info(emoji.Sprintf(":white_check_mark: To proceed with deploying the cluster, run 'bedrock simulate " + randomName + "' and then 'bedrock deploy " + randomName + "'"))
+		log.Info(emoji.Sprintf(":raised_hands: Azure Simple cluster environment " + fullEnvironmentPath + " has been successfully created!"))
+		log.Info(emoji.Sprintf(":white_check_mark: To proceed, run 'bedrock simulate " + fullEnvironmentPath))
 
 		return nil
 	}
@@ -159,8 +159,8 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 		commonInfraConfig["subscription"] = "\"" + subscription + "\""
 		commonInfraConfig["secret"] = "\"" + secret + "\""
 
-		f, err := os.Create(environmentPath + "/bedrock-config.tfvars")
-		log.Info(emoji.Sprintf(":raised_hands: Create Bedrock config file " + environmentPath + "/bedrock-config.tfvars"))
+		f, err := os.Create(fullEnvironmentPath + "/bedrock-config.tfvars")
+		log.Info(emoji.Sprintf(":raised_hands: Create Bedrock config file " + fullEnvironmentPath + "/bedrock-config.tfvars"))
 		if err != nil {
 			return err
 		}
@@ -171,8 +171,8 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 
 		f.Close()
 
-		config_file, err := os.Create(environmentPath + "/bedrock-config.toml")
-		log.Info(emoji.Sprintf(":raised_hands: Create Bedrock config file " + environmentPath + "/bedrock-config.tfvars"))
+		config_file, err := os.Create(fullEnvironmentPath + "/bedrock-config.toml")
+		log.Info(emoji.Sprintf(":raised_hands: Create Bedrock config file " + fullEnvironmentPath + "/bedrock-config.tfvars"))
 		if err != nil {
 			return err
 		}
@@ -190,8 +190,8 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 		commonInfraBackendConfig["container_name"] = "\"" + containerName + "\""
 		commonInfraBackendConfig["key"] = "\"" + "tfstate-common-infra-" + clusterName + "\""
 
-		backendFile, err := os.Create(environmentPath + "/bedrock-backend-config.tfvars")
-		log.Info(emoji.Sprintf(":raised_hands: Create Bedrock backend config file " + environmentPath + "/bedrock-backend-config.tfvars"))
+		backendFile, err := os.Create(fullEnvironmentPath + "/bedrock-backend-config.tfvars")
+		log.Info(emoji.Sprintf(":raised_hands: Create Bedrock backend config file " + fullEnvironmentPath + "/bedrock-backend-config.tfvars"))
 		if err != nil {
 			return err
 		}
@@ -202,7 +202,7 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 
 		backendFile.Close()
 
-		commonInfraPath = environmentPath
+		commonInfraPath = fullEnvironmentPath
 
 		return nil
 	}
@@ -218,7 +218,7 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 		}
 
 		log.Info(emoji.Sprintf(":family: Common Infra path is set to %s", commonInfraPath))
-		copyCommonInfraTemplateToPath(commonInfraPath, environmentPath, environment, singleKeyvaultConfig)
+		copyCommonInfraTemplateToPath(commonInfraPath, fullEnvironmentPath, environmentPath, environment, singleKeyvaultConfig)
 
 		singleKeyvaultConfig["resource_group_name"] = "\"" + clusterName + "-rg\""
 		singleKeyvaultConfig["resource_group_location"] = "\"" + "westus2" + "\""
@@ -234,7 +234,7 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 		singleKeyvaultConfig["subnet_prefixes"] = singleKeyvaultConfig["subnet_prefix"]
 		singleKeyvaultConfig["vnet_subnet_id"] = "\"/subscriptions/" + subscription + "/resourceGroups/" + strings.Replace(singleKeyvaultConfig["global_resource_group_name"], "\"", "", -1) + "/providers/Microsoft.Network/virtualNetworks/" + strings.Replace(singleKeyvaultConfig["vnet_name"], "\"", "", -1) + "/subnets/" + strings.Replace(singleKeyvaultConfig["subnet_name"], "\"", "", -1) + "\""
 
-		f, err := os.Create(environmentPath + "/bedrock-config.tfvars")
+		f, err := os.Create(fullEnvironmentPath + "/bedrock-config.tfvars")
 		log.Info(emoji.Sprintf(":raised_hands: Create Bedrock config file " + environmentPath + "/bedrock-config.tfvars"))
 		if err != nil {
 			return err
@@ -253,8 +253,8 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 		singleKeyvaultBackendConfig["container_name"] = "\"" + containerName + "\""
 		singleKeyvaultBackendConfig["key"] = "\"" + "tfstate-single-keyvault-" + clusterName + "\""
 
-		kvBackendFile, err := os.Create(environmentPath + "/bedrock-backend-config.tfvars")
-		log.Info(emoji.Sprintf(":raised_hands: Create Bedrock backend config file " + environmentPath + "/bedrock-backend-config.tfvars"))
+		kvBackendFile, err := os.Create(fullEnvironmentPath + "/bedrock-backend-config.tfvars")
+		log.Info(emoji.Sprintf(":raised_hands: Create Bedrock backend config file " + fullEnvironmentPath + "/bedrock-backend-config.tfvars"))
 		if err != nil {
 			return err
 		}
@@ -265,8 +265,8 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 
 		kvBackendFile.Close()
 
-		log.Info(emoji.Sprintf(":raised_hands: Azure Single Keyvault cluster environment " + environmentPath + " has been successfully created!"))
-		log.Info(emoji.Sprintf(":white_check_mark: To proceed with deploying the cluster, run 'bedrock simulate " + randomName + "' and then 'bedrock deploy " + randomName + "'"))
+		log.Info(emoji.Sprintf(":raised_hands: Azure Single Keyvault cluster environment " + fullEnvironmentPath + " has been successfully created!"))
+		log.Info(emoji.Sprintf(":white_check_mark: To proceed, run 'bedrock simulate " + environmentPath))
 
 		return nil
 	}
@@ -282,7 +282,7 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 		}
 
 		log.Info(emoji.Sprintf(":family: Common Infra path is set to %s", commonInfraPath))
-		copyCommonInfraTemplateToPath(commonInfraPath, environmentPath, environment, multipleConfig)
+		copyCommonInfraTemplateToPath(commonInfraPath, fullEnvironmentPath, environmentPath, environment, multipleConfig)
 
 		multipleConfig["agent_vm_count"] = "\"" + "3" + "\""
 		multipleConfig["agent_vm_size"] = "\"" + "Standard_D4s_v3" + "\""
@@ -307,8 +307,8 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 		multipleConfig["central_resource_group_location"] = "\"" + "centralus" + "\""
 		multipleConfig["gitops_central_path"] = "\"\""
 
-		f, err := os.Create(environmentPath + "/bedrock-config.tfvars")
-		log.Info(emoji.Sprintf(":raised_hands: Create Bedrock config file " + environmentPath + "/bedrock-config.tfvars"))
+		f, err := os.Create(fullEnvironmentPath + "/bedrock-config.tfvars")
+		log.Info(emoji.Sprintf(":raised_hands: Create Bedrock config file " + fullEnvironmentPath + "/bedrock-config.tfvars"))
 		if err != nil {
 			return err
 		}
@@ -319,8 +319,8 @@ func addConfigTemplate(environment string, environmentPath string, clusterName s
 
 		f.Close()
 
-		log.Info(emoji.Sprintf(":raised_hands: Azure Multiple cluster environment " + environmentPath + " has been successfully created!"))
-		log.Info(emoji.Sprintf(":white_check_mark: To proceed with deploying the cluster, run 'bedrock simulate " + randomName + "' and then 'bedrock deploy " + randomName + "'"))
+		log.Info(emoji.Sprintf(":raised_hands: Azure Multiple cluster environment " + fullEnvironmentPath + " has been successfully created!"))
+		log.Info(emoji.Sprintf(":white_check_mark: To proceed, run 'bedrock simulate " + environmentPath))
 
 		return nil
 	}
