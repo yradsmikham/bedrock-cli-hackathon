@@ -4,13 +4,11 @@ import (
 	"io/ioutil"
 	"os/exec"
 
-	// "io/ioutil"
-
 	"github.com/kyokomi/emoji"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
-	"../utils"
+	"github.com/yradsmikham/bedrock-cli/utils"
 )
 
 // Deploy a bedrock environment by executing `terraform apply`

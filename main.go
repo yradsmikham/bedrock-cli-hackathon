@@ -3,9 +3,9 @@ package main
 import (
 	"reflect"
 
-	"github.com/yradsmikham/bedrock-cli/cmd"
 	log "github.com/sirupsen/logrus"
 	"github.com/timfpark/yaml"
+	"github.com/yradsmikham/bedrock-cli/cmd"
 )
 
 func main() {

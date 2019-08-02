@@ -5,11 +5,11 @@ import (
 	"io/ioutil"
 	"os"
 
-	"../utils"
 	"github.com/kyokomi/emoji"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/yradsmikham/bedrock-cli/utils"
 )
 
 func setEnv(name string) (err error) {
