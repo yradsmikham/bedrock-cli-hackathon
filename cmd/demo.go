@@ -14,8 +14,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var newRandomName string
-
 // Demo is a function that will automate all the steps to creating an Azure Simple Cluster
 func Demo(servicePrincipal string, secret string) (err error) {
 	// Make sure host system contains all utils needed by Fabrikate
@@ -86,6 +84,7 @@ func Demo(servicePrincipal string, secret string) (err error) {
 	return err
 }
 
+var clusterName string
 var servicePrincipal string
 var secret string
 

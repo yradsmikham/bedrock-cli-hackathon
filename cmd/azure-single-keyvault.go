@@ -27,7 +27,7 @@ func azureSingleKeyvault(servicePrincipal string, secret string) (err error) {
 		return err
 	}
 
-	Init(KEYVAULT)
+	Init(KEYVAULT, clusterName)
 	return err
 }
 
@@ -35,7 +35,7 @@ var commonInfraPath string
 var subscription string
 
 var azureSingleKeyvaultCmd = &cobra.Command{
-	Use:   KEYVAULT + " --subscription sub --sp service-principal-app-id --secret service-principal-password --storage-account storage-account-name --access-key storage-account-access-key --container-name storage-container-name [--gitops-ssh-url manifest repo url in ssh format] [--tenant tenant-id | --common-infra-path common-infra-path]",
+	Use:   KEYVAULT + " --subscription subscription-id --sp service-principal-app-id --secret service-principal-password --storage-account storage-account-name --access-key storage-account-access-key --container-name storage-container-name [--gitops-ssh-url manifest-repo-url-in-ssh-format | --cluster-name cluster-name | --tenant tenant-id | --common-infra-path common-infra-path]",
 	Short: "Deploys a Bedrock Azure Kubernetes Service (AKS) cluster with an Azure Key Vault",
 	Long:  `Deploys a Bedrock Azure Kubernetes Service (AKS) cluster with an Azure Key Vault. Make sure a successful deployment of ` + COMMON + ` is complete before attempting to deploy this one`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -54,6 +54,7 @@ func init() {
 	azureSingleKeyvaultCmd.Flags().StringVar(&storageAccount, "storage-account", "", "Storage Account Name")
 	azureSingleKeyvaultCmd.Flags().StringVar(&accessKey, "access-key", "", "Storage Account Access Key")
 	azureSingleKeyvaultCmd.Flags().StringVar(&containerName, "container-name", "", "Storage Container Name")
+	azureSingleKeyvaultCmd.Flags().StringVar(&clusterName, "cluster-name", "", "Name of AKS Cluster")
 	azureSingleKeyvaultCmd.MarkFlagRequired("sp")
 	azureSingleKeyvaultCmd.MarkFlagRequired("secret")
 	azureSingleKeyvaultCmd.MarkFlagRequired("subscription")

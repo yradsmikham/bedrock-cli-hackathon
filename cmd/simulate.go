@@ -13,11 +13,12 @@ import (
 )
 
 func setEnv(name string) (err error) {
-	// must environment variables from bedrock-config and set them as environment variables
+	// must retreive environment variables from bedrock-config and set them as environment variables
 	viper.SetConfigName("bedrock-config")             // name of config file (without extension)
 	viper.AddConfigPath(name + "/azure-common-infra") // path to look for the config file in
-	errr := viper.ReadInConfig()                      // Find and read the config file
-	if errr != nil {                                  // Handle errors reading the config file
+	viper.AddConfigPath(name + "/azure-multiple-clusters")
+	errr := viper.ReadInConfig() // Find and read the config file
+	if errr != nil {             // Handle errors reading the config file
 		panic(fmt.Errorf("Fatal error config file: %s \n", errr))
 	}
 
@@ -85,7 +86,7 @@ func Simulate(name string) (err error) {
 			setEnv(name)
 
 			// Terraform Init
-			utils.TerraformInitBackend(name + "/azure-multiple-clusters")
+			utils.TerraformInit(name + "/azure-multiple-clusters")
 
 			// Terraform Plan
 			utils.TerraformPlan(name + "/azure-multiple-clusters")
