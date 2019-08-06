@@ -1,6 +1,6 @@
-# Bedrock CLI
-
 [![Go Report Card][go-report-card-badge]][go-report-card]
+
+# Bedrock CLI
 
 Bedrock CLI is an open-source project that was developed to supplement Project Bedrock. It is a wrapper for `terraform`, `az` cli, and `kubectl` in order to extend features in Bedrock.
 
@@ -46,5 +46,6 @@ bedrock demo --sp <service principal id> --secret <password for the service prin
 The Bedrock CLI also supports other environments such as `azure-common-infra`, `azure-single-keyvault`, and `azure-multiple-clusters`. Check out `bedrock info <environment>` for more information on how to create these environments with the CLI.
 
 <!-- refs -->
+
 [go-report-card]: https://goreportcard.com/report/github.com/yradsmikham/bedrock-cli
 [go-report-card-badge]: https://goreportcard.com/badge/github.com/yradsmikham-bedrock-cli
