@@ -52,7 +52,6 @@ jobs:
     displayName: Install linter
 
   - script: |
-      scripts/build clean
       go mod download
     workingDirectory: "$(modulePath)"
     displayName: "Get Go dependencies"
