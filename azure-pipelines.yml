@@ -13,9 +13,10 @@ jobs:
 
   variables:
     GOBIN:  '$(GOPATH)/bin' # Go binaries path
-    GOROOT: '/usr/local/go1.11' # Go installation path
+    GOROOT: '/usr/local/go1.12' # Go installation path
     GOPATH: '$(system.defaultWorkingDirectory)/gopath' # Go workspace path
     modulePath: '$(GOPATH)/src/github.com/$(build.repository.name)' # Path to the module's code
+    GO111MODULE: "on"
 
   steps:
   - checkout: self
@@ -31,6 +32,7 @@ jobs:
       mv !(gopath) '$(modulePath)'
       echo '##vso[task.prependpath]$(GOBIN)'
       echo '##vso[task.prependpath]$(GOROOT)/bin'
+      go version
     displayName: 'Set up Go workspace'
 
   - script: |
