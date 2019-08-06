@@ -29,6 +29,5 @@ func init() {
 	azureSimpleCmd.Flags().StringVar(&clusterName, "cluster-name", "", "Name of AKS Cluster")
 	azureSimpleCmd.MarkFlagRequired("sp")
 	azureSimpleCmd.MarkFlagRequired("secret")
-
 	rootCmd.AddCommand(azureSimpleCmd)
 }

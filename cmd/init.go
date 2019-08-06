@@ -111,12 +111,39 @@ func copyCommonInfraTemplateToPath(commonInfraPath string, fullEnvironmentPath s
 	return err
 }
 
+func getEnvVariables() (err error) {
+	if storageAccount == "" {
+		storageAccount = os.Getenv("AZURE_STORAGE_ACCOUNT")
+	}
+	if accessKey == "" {
+		accessKey = os.Getenv("AZURE_STORAGE_KEY")
+	}
+	if containerName == "" {
+		containerName = os.Getenv("AZURE_CONTAINER")
+	}
+	if subscription == "" {
+		subscription = os.Getenv("ARM_SUBSCRIPTION_ID")
+	}
+	if servicePrincipal == "" {
+		servicePrincipal = os.Getenv("ARM_CLIENT_ID")
+	}
+	if tenant == "" {
+		tenant = os.Getenv("ARM_TENANT_ID")
+	}
+	if secret == "" {
+		secret = os.Getenv("ARM_CLIENT_SECRET")
+	}
+	return
+}
+
 // Adds a blank bedrock config template
 func addConfigTemplate(environment string, fullEnvironmentPath string, environmentPath string, clusterName string, SSHKey string) (err error) {
 	SSHKey = strings.TrimSuffix(SSHKey, "\n")
 
 	if environment == SIMPLE {
 		azureSimpleConfig := make(map[string]string)
+
+		getEnvVariables()
 
 		azureSimpleConfig["resource_group_name"] = "\"" + clusterName + "-rg\""
 		azureSimpleConfig["resource_group_location"] = "\"\""
@@ -153,7 +180,9 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 	if environment == COMMON {
 		commonInfraConfig := make(map[string]string)
 
-		commonInfraConfig["global_resource_group_name"] = "\"" + clusterName + "-rg\""
+		getEnvVariables()
+
+		commonInfraConfig["global_resource_group_name"] = "\"" + clusterName + "-kv-rg\""
 		commonInfraConfig["global_resource_group_location"] = "\"" + "westus2" + "\""
 		commonInfraConfig["keyvault_name"] = "\"" + clusterName + "-kv\""
 		commonInfraConfig["service_principal_id"] = "\"" + servicePrincipal + "\""
@@ -223,6 +252,8 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 			Init(COMMON, clusterName)
 		}
 
+		getEnvVariables()
+
 		log.Info(emoji.Sprintf(":family: Common Infra path is set to %s", commonInfraPath))
 
 		if clusterName == "" {
@@ -239,9 +270,9 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 		singleKeyvaultConfig["ssh_public_key"] = "\"" + SSHKey + "\""
 		singleKeyvaultConfig["gitops_ssh_url"] = "\"" + gitopsSSHUrl + "\""
 		singleKeyvaultConfig["gitops_ssh_key"] = "\"" + "deploy-key" + "\""
-		singleKeyvaultConfig["keyvault_resource_group"] = singleKeyvaultConfig["global_resource_group_name"]
-		singleKeyvaultConfig["subnet_prefixes"] = singleKeyvaultConfig["subnet_prefix"]
-		singleKeyvaultConfig["vnet_subnet_id"] = "\"/subscriptions/" + subscription + "/resourceGroups/" + strings.Replace(singleKeyvaultConfig["global_resource_group_name"], "\"", "", -1) + "/providers/Microsoft.Network/virtualNetworks/" + strings.Replace(singleKeyvaultConfig["vnet_name"], "\"", "", -1) + "/subnets/" + strings.Replace(singleKeyvaultConfig["subnet_name"], "\"", "", -1) + "\""
+		singleKeyvaultConfig["keyvault_resource_group"] = "\"" + clusterName + "-kv-rg\""
+		singleKeyvaultConfig["subnet_prefixes"] = "\"" + "10.39.0.0/16" + "\""
+		singleKeyvaultConfig["vnet_subnet_id"] = "\"/subscriptions/" + subscription + "/resourceGroups/" + clusterName + "-kv-rg/providers/Microsoft.Network/virtualNetworks/" + clusterName + "-vnet/subnets/" + clusterName + "-subnet" + "\""
 
 		f, err := os.Create(fullEnvironmentPath + "/bedrock-config.tfvars")
 		log.Info(emoji.Sprintf(":page_with_curl: Create Bedrock config file " + environmentPath + "/bedrock-config.tfvars"))
@@ -293,6 +324,8 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 		log.Info(emoji.Sprintf(":family: Common Infra path is set to %s", commonInfraPath))
 		copyCommonInfraTemplateToPath(commonInfraPath, fullEnvironmentPath, environmentPath, environment, multipleConfig)
 		*/
+
+		getEnvVariables()
 
 		multipleConfig["agent_vm_count"] = "\"" + "3" + "\""
 		multipleConfig["agent_vm_size"] = "\"" + "Standard_D4s_v3" + "\""
