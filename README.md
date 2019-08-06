@@ -47,5 +47,4 @@ The Bedrock CLI also supports other environments such as `azure-common-infra`, `
 
 <!-- refs -->
 [go-report-card]: https://goreportcard.com/report/github.com/yradsmikham/bedrock-cli
-[go-report-card-badge]:
-  https://goreportcard.com/badge/github.com/yradsmikham-bedrock-cli
+[go-report-card-badge]: https://goreportcard.com/badge/github.com/yradsmikham-bedrock-cli
