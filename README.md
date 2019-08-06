@@ -1,6 +1,6 @@
-[![Go Report Card][go-report-card-badge]][go-report-card]
-
 # Bedrock CLI
+
+[![Go Report Card][go-report-card-badge]][go-report-card]
 
 Bedrock CLI is an open-source project that was developed to supplement Project Bedrock. It is a wrapper for `terraform`, `az` cli, and `kubectl` in order to extend features in Bedrock.
 
