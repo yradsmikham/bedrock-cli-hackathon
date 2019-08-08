@@ -81,10 +81,14 @@ func Simulate(name string) (err error) {
 			setEnv(name)
 
 			// Terraform Init
-			utils.TerraformInitBackend(name + "/azure-single-keyvault")
+			if error := utils.TerraformInitBackend(name + "/azure-single-keyvault"); error != nil {
+				return
+			}
 
 			// Terraform Plan
-			utils.TerraformPlan(name + "/azure-single-keyvault")
+			if error := utils.TerraformPlan(name + "/azure-single-keyvault"); error != nil {
+				return
+			}
 
 			break
 		}

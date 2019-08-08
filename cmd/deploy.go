@@ -26,10 +26,14 @@ func Deploy(name string) (err error) {
 			setEnv(name)
 
 			// Terraform Init
-			utils.TerraformInitBackend(name + "/azure-common-infra")
+			if error := utils.TerraformInitBackend(name + "/azure-common-infra"); error != nil {
+				return
+			}
 
 			// Terraform Plan
-			utils.TerraformApply(name + "/azure-common-infra")
+			if error := utils.TerraformApply(name + "/azure-common-infra"); error != nil {
+				return
+			}
 
 			break
 		}
@@ -41,11 +45,16 @@ func Deploy(name string) (err error) {
 			log.Info(emoji.Sprintf(":dancers: Deploying Azure-Simple Environment"))
 
 			// Terraform Init
-			utils.TerraformInit(name + "/azure-simple")
+			if error := utils.TerraformInit(name + "/azure-simple"); error != nil {
+				return
+			}
 
 			// Terraform Plan
-			utils.TerraformApply(name + "/azure-simple")
+			if error := utils.TerraformApply(name + "/azure-simple"); error != nil {
+				return
+			}
 
+			// TO-DO: Built a function to handle this?
 			log.Info(emoji.Sprintf(":mailbox_with_mail: Found Kubeconfig output. Merging into local kubeconfig."))
 			mergeConfigCmd := exec.Command("/bin/sh", "-c", "KUBECONFIG=./output/bedrock_kube_config:~/.kube/config kubectl config view --flatten > merged-config && mv merged-config ~/.kube/config")
 			mergeConfigCmd.Dir = name + "/azure-simple"
@@ -61,10 +70,14 @@ func Deploy(name string) (err error) {
 			setEnv(name)
 
 			// Terraform Init
-			utils.TerraformInitBackend(name + "/azure-single-keyvault")
+			if error := utils.TerraformInitBackend(name + "/azure-single-keyvault"); error != nil {
+				return
+			}
 
 			// Terraform Plan
-			utils.TerraformApply(name + "/azure-single-keyvault")
+			if error := utils.TerraformApply(name + "/azure-single-keyvault"); error != nil {
+				return
+			}
 
 			log.Info(emoji.Sprintf(":mailbox_with_mail: Found Kubeconfig output. Merging into local kubeconfig."))
 			mergeConfigCmd := exec.Command("/bin/sh", "-c", "KUBECONFIG=./output/bedrock_kube_config:~/.kube/config kubectl config view --flatten > merged-config && mv merged-config ~/.kube/config")
@@ -81,12 +94,16 @@ func Deploy(name string) (err error) {
 			setEnv(name)
 
 			// Terraform Init
-			utils.TerraformInitBackend(name + "/azure-multiple-clusters")
+			if error := utils.TerraformInitBackend(name + "/azure-multiple-clusters"); error != nil {
+				return
+			}
 
 			// Terraform Plan
-			utils.TerraformApply(name + "/azure-multiple-clusters")
+			if error := utils.TerraformApply(name + "/azure-multiple-clusters"); error != nil {
+				return
+			}
 
-			// For multiple cluster, must add each cluster individually
+			// TO-DO: For multiple cluster, must add each cluster individually
 			log.Info(emoji.Sprintf(":mailbox_with_mail: Found Kubeconfig output. Merging into local kubeconfig."))
 			mergeConfigCmd := exec.Command("/bin/sh", "-c", "KUBECONFIG=./output/bedrock_kube_config:~/.kube/config kubectl config view --flatten > merged-config && mv merged-config ~/.kube/config")
 			mergeConfigCmd.Dir = name + "/azure-multiple-clusters"

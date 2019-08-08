@@ -259,7 +259,9 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 		// When common infra is not initialized, create one
 		if commonInfraPath == "" {
 			log.Info(emoji.Sprintf(":two_men_holding_hands: Common Infra path is not set, creating common infra with tenant id %s", tenant))
-			Init(COMMON, clusterName)
+			if _, error := Init(COMMON, clusterName); error != nil {
+				return
+			}
 		}
 
 		if error := getEnvVariables(); error != nil {
@@ -293,7 +295,9 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 		}
 
 		for setting, value := range singleKeyvaultConfig {
-			f.WriteString(setting + " = " + value + "\n")
+			if _, error := f.WriteString(setting + " = " + value + "\n"); error != nil {
+				return error
+			}
 		}
 
 		f.Close()
@@ -312,7 +316,9 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 		}
 
 		for setting, value := range singleKeyvaultBackendConfig {
-			kvBackendFile.WriteString(setting + " = " + value + "\n")
+			if _, error := kvBackendFile.WriteString(setting + " = " + value + "\n"); error != nil {
+				return error
+			}
 		}
 
 		kvBackendFile.Close()

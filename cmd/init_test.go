@@ -16,7 +16,10 @@ func TestInit(t *testing.T) {
 
 	for k, v := range env {
 		fmt.Println("Testing Init function for environment", k)
-		Init(v, "test"+k)
+		if _, error := Init(v, "test"+k); error != nil {
+			t.Error("There was an error running the Init function.")
+			return
+		}
 		if fileExists("bedrock/cluster/environments/test" + k + "/" + v + "/bedrock-config.tfvars") {
 			fmt.Println("Configuration file successfully built for environment", k)
 		} else {

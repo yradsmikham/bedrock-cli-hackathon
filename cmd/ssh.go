@@ -38,9 +38,8 @@ func SSH(path string, name string) (key string, err error) {
 		return "", err
 	}
 	log.Info(string(file))
-	//return string(file), nil
+	return string(file), nil
 
-	return
 }
 
 var sshCmd = &cobra.Command{
