@@ -258,7 +258,7 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 		// When common infra is not initialized, create one
 		if commonInfraPath == "" {
 			log.Info(emoji.Sprintf(":two_men_holding_hands: Common Infra path is not set, creating common infra with tenant id %s", tenant))
-			if _, error := Init(COMMON, clusterName); error != nil {
+			if error := Init(COMMON, clusterName); error != nil {
 				return error
 			}
 		}
