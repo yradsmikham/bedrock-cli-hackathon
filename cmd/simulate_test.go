@@ -24,6 +24,7 @@ func TestSimulate(t *testing.T) {
 		errSim := Simulate("bedrock/cluster/environments/test" + k)
 		if errSim != nil {
 			t.Error("There was an error simulating", k)
+			t.Error(errSim)
 		}
 	}
 
