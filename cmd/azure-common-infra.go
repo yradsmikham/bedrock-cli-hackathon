@@ -8,7 +8,9 @@ var tenant string
 
 // Initializes the configuration for the given environment
 func commonInfra(servicePrincipal string, tenant string, storageAccount string, accessKey string, containerName string) (err error) {
-	Init(COMMON, clusterName)
+	if _, error := Init(COMMON, clusterName); error != nil {
+		return
+	}
 	return err
 }
 

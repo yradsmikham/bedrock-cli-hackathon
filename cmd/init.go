@@ -41,7 +41,9 @@ func Init(environment string, clusterName string) (configPath string, err error)
 
 	// Copy Terraform Template
 	environmentPath := "bedrock/cluster/environments/" + randomClusterName
-	os.MkdirAll(environmentPath, os.ModePerm)
+	if error := os.MkdirAll(environmentPath, os.ModePerm); error != nil {
+		return
+	}
 
 	log.Info(emoji.Sprintf(":flashlight: Creating New Environment %s", environmentPath))
 	if output, err := exec.Command("cp", "-r", "bedrock/cluster/environments/"+environment, environmentPath).CombinedOutput(); err != nil {
@@ -55,13 +57,9 @@ func Init(environment string, clusterName string) (configPath string, err error)
 	if environment != COMMON {
 		SSHKey, _ = SSH(fullEnvironmentPath, "deploy-key")
 	}
-	if err == nil {
-		// Save bedrock-config.tfvars
-		err = addConfigTemplate(environment, fullEnvironmentPath, environmentPath, randomClusterName, SSHKey)
-
-		if err == nil {
-			return
-		}
+	// Save bedrock-config.tfvars
+	if err = addConfigTemplate(environment, fullEnvironmentPath, environmentPath, randomClusterName, SSHKey); err != nil {
+		return
 	}
 	configPath = fullEnvironmentPath + "/bedrock-config.tfvars"
 	return
@@ -143,7 +141,9 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 	if environment == SIMPLE {
 		azureSimpleConfig := make(map[string]string)
 
-		getEnvVariables()
+		if error := getEnvVariables(); error != nil {
+			return
+		}
 
 		azureSimpleConfig["resource_group_name"] = "\"" + clusterName + "-rg\""
 		azureSimpleConfig["resource_group_location"] = "\"\""
@@ -166,7 +166,9 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 		}
 
 		for setting, value := range azureSimpleConfig {
-			f.WriteString(setting + " = " + value + "\n")
+			if _, err := f.WriteString(setting + " = " + value + "\n"); err != nil {
+				return err
+			}
 		}
 
 		f.Close()
@@ -180,7 +182,9 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 	if environment == COMMON {
 		commonInfraConfig := make(map[string]string)
 
-		getEnvVariables()
+		if error := getEnvVariables(); error != nil {
+			return
+		}
 
 		commonInfraConfig["global_resource_group_name"] = "\"" + clusterName + "-kv-rg\""
 		commonInfraConfig["global_resource_group_location"] = "\"" + "westus2" + "\""
@@ -201,7 +205,9 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 		}
 
 		for setting, value := range commonInfraConfig {
-			f.WriteString(setting + " = " + value + "\n")
+			if _, err := f.WriteString(setting + " = " + value + "\n"); err != nil {
+				return err
+			}
 		}
 
 		f.Close()
@@ -213,7 +219,9 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 		}
 
 		for setting, value := range commonInfraConfig {
-			configFile.WriteString(setting + " = " + value + "\n")
+			if _, err := configFile.WriteString(setting + " = " + value + "\n"); err != nil {
+				return err
+			}
 		}
 
 		configFile.Close()
@@ -232,7 +240,9 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 		}
 
 		for setting, value := range commonInfraBackendConfig {
-			backendFile.WriteString(setting + " = " + value + "\n")
+			if _, err := backendFile.WriteString(setting + " = " + value + "\n"); err != nil {
+				return err
+			}
 		}
 
 		backendFile.Close()
@@ -252,7 +262,9 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 			Init(COMMON, clusterName)
 		}
 
-		getEnvVariables()
+		if error := getEnvVariables(); error != nil {
+			return
+		}
 
 		log.Info(emoji.Sprintf(":family: Common Infra path is set to %s", commonInfraPath))
 
@@ -325,7 +337,9 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 		copyCommonInfraTemplateToPath(commonInfraPath, fullEnvironmentPath, environmentPath, environment, multipleConfig)
 		*/
 
-		getEnvVariables()
+		if error := getEnvVariables(); error != nil {
+			return
+		}
 
 		multipleConfig["agent_vm_count"] = "\"" + "3" + "\""
 		multipleConfig["agent_vm_size"] = "\"" + "Standard_D4s_v3" + "\""
@@ -360,7 +374,9 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 		}
 
 		for setting, value := range multipleConfig {
-			f.WriteString(setting + " = " + value + "\n")
+			if _, err := f.WriteString(setting + " = " + value + "\n"); err != nil {
+				return err
+			}
 		}
 
 		f.Close()
@@ -372,7 +388,9 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 		}
 
 		for setting, value := range multipleConfig {
-			configFile.WriteString(setting + " = " + value + "\n")
+			if _, err := configFile.WriteString(setting + " = " + value + "\n"); err != nil {
+				return err
+			}
 		}
 
 		configFile.Close()

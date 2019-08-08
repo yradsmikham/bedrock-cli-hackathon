@@ -46,10 +46,14 @@ func Simulate(name string) (err error) {
 			setEnv(name)
 
 			// Terraform Init
-			utils.TerraformInitBackend(name + "/azure-common-infra")
+			if error := utils.TerraformInitBackend(name + "/azure-common-infra"); error != nil {
+				return
+			}
 
 			// Terraform Plan
-			utils.TerraformPlan(name + "/azure-common-infra")
+			if error := utils.TerraformPlan(name + "/azure-common-infra"); error != nil {
+				return
+			}
 
 			break
 		}
@@ -61,10 +65,14 @@ func Simulate(name string) (err error) {
 			log.Info(emoji.Sprintf(":dancers: Simulating Azure-Simple Environment"))
 
 			// Terraform Init
-			utils.TerraformInit(name + "/azure-simple")
+			if error := utils.TerraformInit(name + "/azure-simple"); error != nil {
+				return
+			}
 
 			// Terraform Plan
-			utils.TerraformPlan(name + "/azure-simple")
+			if error := utils.TerraformPlan(name + "/azure-simple"); error != nil {
+				return
+			}
 
 			break
 		}
@@ -85,10 +93,14 @@ func Simulate(name string) (err error) {
 			setEnv(name)
 
 			// Terraform Init
-			utils.TerraformInit(name + "/azure-multiple-clusters")
+			if error := utils.TerraformInit(name + "/azure-multiple-clusters"); error != nil {
+				return
+			}
 
 			// Terraform Plan
-			utils.TerraformPlan(name + "/azure-multiple-clusters")
+			if error := utils.TerraformPlan(name + "/azure-multiple-clusters"); error != nil {
+				return
+			}
 
 			break
 		}

@@ -8,7 +8,9 @@ import (
 
 func TestSSH(t *testing.T) {
 
-	SSH(".", "testSSHKey")
+	if _, error := SSH(".", "testSSHKey"); error != nil {
+		return
+	}
 
 	if fileExists("testSSHKey") {
 		fmt.Println("Private SSH Key created successfully.")

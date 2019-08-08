@@ -17,7 +17,9 @@ func azureMultiCluster(servicePrincipal string, secret string) (err error) {
 		return err
 	}
 
-	Init(MULTIPLE, clusterName)
+	if _, error := Init(MULTIPLE, clusterName); error != nil {
+		return
+	}
 	return err
 }
 
