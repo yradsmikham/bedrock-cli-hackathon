@@ -16,12 +16,12 @@ import (
 var randomClusterName string
 
 // Init functions initializes the configuration for the given environment
-func Init(environment string, clusterName string) (configPath string, err error) {
+func Init(environment string, clusterName string) (err error) {
 	requiredSystemTools := []string{"git", "helm", "sh", "curl", "terraform", "az"}
 	for _, tool := range requiredSystemTools {
 		path, err := exec.LookPath(tool)
 		if err != nil {
-			return "", err
+			return err
 		}
 		log.Info(emoji.Sprintf(":mag: Using %s: %s", tool, path))
 	}
@@ -42,13 +42,13 @@ func Init(environment string, clusterName string) (configPath string, err error)
 	// Copy Terraform Template
 	environmentPath := "bedrock/cluster/environments/" + randomClusterName
 	if error := os.MkdirAll(environmentPath, os.ModePerm); error != nil {
-		return "", error
+		return error
 	}
 
 	log.Info(emoji.Sprintf(":flashlight: Creating New Environment %s", environmentPath))
 	if output, err := exec.Command("cp", "-r", "bedrock/cluster/environments/"+environment, environmentPath).CombinedOutput(); err != nil {
 		log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
-		return "", err
+		return err
 	}
 
 	// Generate ssh keys
@@ -59,10 +59,9 @@ func Init(environment string, clusterName string) (configPath string, err error)
 	}
 	// Save bedrock-config.tfvars
 	if err = addConfigTemplate(environment, fullEnvironmentPath, environmentPath, randomClusterName, SSHKey); err != nil {
-		return "", err
+		return err
 	}
-	configPath = fullEnvironmentPath + "/bedrock-config.tfvars"
-	return "", err
+	return err
 }
 
 func copyCommonInfraTemplateToPath(commonInfraPath string, fullEnvironmentPath string, environmentPath string, environment string, config map[string]string) (err error) {
