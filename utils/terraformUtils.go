@@ -27,13 +27,13 @@ func runCommandWithOutput(cmd *exec.Cmd) (err error) {
 	err = cmd.Start()
 	if err != nil {
 		log.Error("Error starting Cmd", err)
-		return
+		return err
 	}
 
 	err = cmd.Wait()
 	if err != nil {
 		log.Error("Error waiting for Cmd", err)
-		return
+		return err
 	}
 
 	return err
