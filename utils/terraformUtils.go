@@ -14,7 +14,7 @@ func runCommandWithOutput(cmd *exec.Cmd) (err error) {
 	cmdReader, err := cmd.StdoutPipe()
 	if err != nil {
 		log.Error("Error creating StdoutPipe for cmd", err)
-		return
+		return err
 	}
 
 	scanner := bufio.NewScanner(cmdReader)
