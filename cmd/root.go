@@ -25,7 +25,7 @@ var rootCmd = &cobra.Command{
 			log.SetLevel(log.InfoLevel)
 		}
 
-		return nil
+		return err
 	},
 }
 

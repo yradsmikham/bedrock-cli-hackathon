@@ -9,7 +9,7 @@ var gitopsSSHUrl string
 // Initializes the configuration for the given environment
 func azureSimple(servicePrincipal string, secret string) (err error) {
 	if _, error := Init(SIMPLE, clusterName); error != nil {
-		return
+		return error
 	}
 	return err
 }

@@ -27,12 +27,12 @@ func Deploy(name string) (err error) {
 
 			// Terraform Init
 			if error := utils.TerraformInitBackend(name + "/azure-common-infra"); error != nil {
-				return
+				return error
 			}
 
 			// Terraform Plan
 			if error := utils.TerraformApply(name + "/azure-common-infra"); error != nil {
-				return
+				return error
 			}
 
 			break
@@ -46,12 +46,12 @@ func Deploy(name string) (err error) {
 
 			// Terraform Init
 			if error := utils.TerraformInit(name + "/azure-simple"); error != nil {
-				return
+				return error
 			}
 
 			// Terraform Plan
 			if error := utils.TerraformApply(name + "/azure-simple"); error != nil {
-				return
+				return error
 			}
 
 			// TO-DO: Built a function to handle this?
@@ -71,12 +71,12 @@ func Deploy(name string) (err error) {
 
 			// Terraform Init
 			if error := utils.TerraformInitBackend(name + "/azure-single-keyvault"); error != nil {
-				return
+				return error
 			}
 
 			// Terraform Plan
 			if error := utils.TerraformApply(name + "/azure-single-keyvault"); error != nil {
-				return
+				return error
 			}
 
 			log.Info(emoji.Sprintf(":mailbox_with_mail: Found Kubeconfig output. Merging into local kubeconfig."))
@@ -95,12 +95,12 @@ func Deploy(name string) (err error) {
 
 			// Terraform Init
 			if error := utils.TerraformInitBackend(name + "/azure-multiple-clusters"); error != nil {
-				return
+				return error
 			}
 
 			// Terraform Plan
 			if error := utils.TerraformApply(name + "/azure-multiple-clusters"); error != nil {
-				return
+				return error
 			}
 
 			// TO-DO: For multiple cluster, must add each cluster individually

@@ -42,7 +42,7 @@ func Init(environment string, clusterName string) (configPath string, err error)
 	// Copy Terraform Template
 	environmentPath := "bedrock/cluster/environments/" + randomClusterName
 	if error := os.MkdirAll(environmentPath, os.ModePerm); error != nil {
-		return
+		return "", error
 	}
 
 	log.Info(emoji.Sprintf(":flashlight: Creating New Environment %s", environmentPath))
@@ -59,10 +59,10 @@ func Init(environment string, clusterName string) (configPath string, err error)
 	}
 	// Save bedrock-config.tfvars
 	if err = addConfigTemplate(environment, fullEnvironmentPath, environmentPath, randomClusterName, SSHKey); err != nil {
-		return
+		return "", err
 	}
 	configPath = fullEnvironmentPath + "/bedrock-config.tfvars"
-	return
+	return "", err
 }
 
 func copyCommonInfraTemplateToPath(commonInfraPath string, fullEnvironmentPath string, environmentPath string, environment string, config map[string]string) (err error) {
@@ -70,7 +70,7 @@ func copyCommonInfraTemplateToPath(commonInfraPath string, fullEnvironmentPath s
 	log.Info(emoji.Sprintf(":hushed: Copying %s variables from %s", COMMON, filename))
 
 	if len(filename) == 0 {
-		return nil
+		return err
 	}
 	file, err := os.Open(filename)
 	if err != nil {
@@ -131,7 +131,7 @@ func getEnvVariables() (err error) {
 	if secret == "" {
 		secret = os.Getenv("ARM_CLIENT_SECRET")
 	}
-	return
+	return err
 }
 
 // Adds a blank bedrock config template
@@ -142,7 +142,7 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 		azureSimpleConfig := make(map[string]string)
 
 		if error := getEnvVariables(); error != nil {
-			return
+			return error
 		}
 
 		azureSimpleConfig["resource_group_name"] = "\"" + clusterName + "-rg\""
@@ -176,14 +176,14 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 		log.Info(emoji.Sprintf(":raised_hands: Azure Simple cluster environment " + fullEnvironmentPath + " has been successfully created!"))
 		log.Info(emoji.Sprintf(":white_check_mark: To proceed, run 'bedrock simulate " + environmentPath + "'"))
 
-		return nil
+		return err
 	}
 
 	if environment == COMMON {
 		commonInfraConfig := make(map[string]string)
 
 		if error := getEnvVariables(); error != nil {
-			return
+			return error
 		}
 
 		commonInfraConfig["global_resource_group_name"] = "\"" + clusterName + "-kv-rg\""
@@ -249,7 +249,7 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 
 		commonInfraPath = fullEnvironmentPath
 
-		return nil
+		return err
 	}
 
 	if environment == KEYVAULT {
@@ -260,19 +260,19 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 		if commonInfraPath == "" {
 			log.Info(emoji.Sprintf(":two_men_holding_hands: Common Infra path is not set, creating common infra with tenant id %s", tenant))
 			if _, error := Init(COMMON, clusterName); error != nil {
-				return
+				return error
 			}
 		}
 
 		if error := getEnvVariables(); error != nil {
-			return
+			return error
 		}
 
 		log.Info(emoji.Sprintf(":family: Common Infra path is set to %s", commonInfraPath))
 
 		if clusterName == "" {
 			if error := copyCommonInfraTemplateToPath(commonInfraPath, fullEnvironmentPath, environmentPath, environment, singleKeyvaultConfig); error != nil {
-				return
+				return error
 			}
 		}
 
@@ -328,7 +328,7 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 		log.Info(emoji.Sprintf(":raised_hands: Azure Single Keyvault cluster environment " + fullEnvironmentPath + " has been successfully created!"))
 		log.Info(emoji.Sprintf(":white_check_mark: To proceed, run 'bedrock simulate " + environmentPath + "'"))
 
-		return nil
+		return err
 	}
 
 	if environment == MULTIPLE {
@@ -346,7 +346,7 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 		*/
 
 		if error := getEnvVariables(); error != nil {
-			return
+			return error
 		}
 
 		multipleConfig["agent_vm_count"] = "\"" + "3" + "\""
@@ -406,7 +406,7 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 		log.Info(emoji.Sprintf(":raised_hands: Azure Multiple cluster environment " + fullEnvironmentPath + " has been successfully created!"))
 		log.Info(emoji.Sprintf(":white_check_mark: To proceed, run 'bedrock simulate " + environmentPath + "'"))
 
-		return nil
+		return err
 	}
 	return err
 }

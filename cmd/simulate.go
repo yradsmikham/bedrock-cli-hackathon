@@ -47,12 +47,12 @@ func Simulate(name string) (err error) {
 
 			// Terraform Init
 			if error := utils.TerraformInitBackend(name + "/azure-common-infra"); error != nil {
-				return
+				return error
 			}
 
 			// Terraform Plan
 			if error := utils.TerraformPlan(name + "/azure-common-infra"); error != nil {
-				return
+				return error
 			}
 
 			break
@@ -66,12 +66,12 @@ func Simulate(name string) (err error) {
 
 			// Terraform Init
 			if error := utils.TerraformInit(name + "/azure-simple"); error != nil {
-				return
+				return error
 			}
 
 			// Terraform Plan
 			if error := utils.TerraformPlan(name + "/azure-simple"); error != nil {
-				return
+				return error
 			}
 
 			break
@@ -82,12 +82,12 @@ func Simulate(name string) (err error) {
 
 			// Terraform Init
 			if error := utils.TerraformInitBackend(name + "/azure-single-keyvault"); error != nil {
-				return
+				return error
 			}
 
 			// Terraform Plan
 			if error := utils.TerraformPlan(name + "/azure-single-keyvault"); error != nil {
-				return
+				return error
 			}
 
 			break
@@ -98,12 +98,12 @@ func Simulate(name string) (err error) {
 
 			// Terraform Init
 			if error := utils.TerraformInit(name + "/azure-multiple-clusters"); error != nil {
-				return
+				return error
 			}
 
 			// Terraform Plan
 			if error := utils.TerraformPlan(name + "/azure-multiple-clusters"); error != nil {
-				return
+				return error
 			}
 
 			break

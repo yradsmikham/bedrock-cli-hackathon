@@ -28,7 +28,7 @@ func azureSingleKeyvault(servicePrincipal string, secret string) (err error) {
 	}
 
 	if _, error := Init(KEYVAULT, clusterName); error != nil {
-		return
+		return error
 	}
 	return err
 }
