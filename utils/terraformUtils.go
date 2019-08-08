@@ -30,9 +30,9 @@ func runCommandWithOutput(cmd *exec.Cmd) (err error) {
 		return err
 	}
 
-	err = cmd.Wait()
-	if err != nil {
-		log.Error("Error waiting for Cmd", err)
+	if err = cmd.Wait(); err != nil {
+		err = err.(*exec.ExitError)
+		log.Error(err.Error())
 		return err
 	}
 
