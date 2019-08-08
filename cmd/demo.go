@@ -43,7 +43,9 @@ func Demo(servicePrincipal string, secret string) (err error) {
 	}
 
 	// Generate SSH Keys
-	SSH("bedrock/cluster/environments/bedrock-"+randomName+"-cluster", "deploy_key")
+	if _, error := SSH("bedrock/cluster/environments/bedrock-"+randomName+"-cluster", "deploy_key"); error != nil {
+		return
+	}
 	sshPublic, err := ioutil.ReadFile("bedrock/cluster/environments/bedrock-" + randomName + "-cluster/deploy_key.pub")
 	if err != nil {
 		fmt.Print(err)

@@ -271,7 +271,9 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 		log.Info(emoji.Sprintf(":family: Common Infra path is set to %s", commonInfraPath))
 
 		if clusterName == "" {
-			copyCommonInfraTemplateToPath(commonInfraPath, fullEnvironmentPath, environmentPath, environment, singleKeyvaultConfig)
+			if error := copyCommonInfraTemplateToPath(commonInfraPath, fullEnvironmentPath, environmentPath, environment, singleKeyvaultConfig); error != nil {
+				return
+			}
 		}
 
 		singleKeyvaultConfig["resource_group_name"] = "\"" + clusterName + "-rg\""
