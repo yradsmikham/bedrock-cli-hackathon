@@ -8,10 +8,10 @@ import (
 
 func TestInit(t *testing.T) {
 	env := map[string]string{
-		"AzureSimple":           SIMPLE,
-		"AzureCommonInfra":      COMMON,
-		"AzureSingleKeyVault":   KEYVAULT,
-		"AzureMultipleClusters": MULTIPLE,
+		"AzureSimple":   SIMPLE,
+		"AzureCommon":   COMMON,
+		"AzureSingleKV": KEYVAULT,
+		"AzureMultiple": MULTIPLE,
 	}
 
 	for k, v := range env {

@@ -9,10 +9,10 @@ import (
 func TestSimulate(t *testing.T) {
 	// Runs Init Function
 	env := map[string]string{
-		"az-simple":       SIMPLE,
-		"az-common-infra": COMMON,
-		"az-single-kv":    KEYVAULT,
-		"az-multiple":     MULTIPLE,
+		"AzureSimple":   SIMPLE,
+		"AzureCommon":   COMMON,
+		"AzureSingleKV": KEYVAULT,
+		"AzureMultiple": MULTIPLE,
 	}
 
 	for k, v := range env {
