@@ -38,7 +38,11 @@ func init() {
 	azureMultiClusterCmd.Flags().StringVar(&tenant, "tenant", "", "Tenant ID for the Service Principal")
 	azureMultiClusterCmd.Flags().StringVar(&subscription, "subscription", "", "Subscription ID")
 	azureMultiClusterCmd.Flags().StringVar(&clusterName, "cluster-name", "", "Name of AKS Cluster")
-	azureMultiClusterCmd.MarkFlagRequired("sp")
-	azureMultiClusterCmd.MarkFlagRequired("secret")
+	if error := azureMultiClusterCmd.MarkFlagRequired("sp"); error != nil {
+		return
+	}
+	if error := azureMultiClusterCmd.MarkFlagRequired("secret"); error != nil {
+		return
+	}
 	rootCmd.AddCommand(azureMultiClusterCmd)
 }

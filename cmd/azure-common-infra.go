@@ -33,7 +33,11 @@ func init() {
 	commonInfraCmd.Flags().StringVar(&accessKey, "access-key", "", "Acces Key for the Storage Account")
 	commonInfraCmd.Flags().StringVar(&containerName, "container-name", "", "Storage Container Name")
 	commonInfraCmd.Flags().StringVar(&clusterName, "cluster-name", "", "Name of AKS Cluster")
-	commonInfraCmd.MarkFlagRequired("sp")
-	commonInfraCmd.MarkFlagRequired("tenant")
+	if error := commonInfraCmd.MarkFlagRequired("sp"); error != nil {
+		return
+	}
+	if error := commonInfraCmd.MarkFlagRequired("tenant"); error != nil {
+		return
+	}
 	rootCmd.AddCommand(commonInfraCmd)
 }

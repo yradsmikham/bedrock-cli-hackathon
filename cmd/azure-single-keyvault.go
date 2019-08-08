@@ -55,9 +55,15 @@ func init() {
 	azureSingleKeyvaultCmd.Flags().StringVar(&accessKey, "access-key", "", "Storage Account Access Key")
 	azureSingleKeyvaultCmd.Flags().StringVar(&containerName, "container-name", "", "Storage Container Name")
 	azureSingleKeyvaultCmd.Flags().StringVar(&clusterName, "cluster-name", "", "Name of AKS Cluster")
-	azureSingleKeyvaultCmd.MarkFlagRequired("sp")
-	azureSingleKeyvaultCmd.MarkFlagRequired("secret")
-	azureSingleKeyvaultCmd.MarkFlagRequired("subscription")
+	if error := azureSingleKeyvaultCmd.MarkFlagRequired("sp"); error != nil {
+		return
+	}
+	if error := azureSingleKeyvaultCmd.MarkFlagRequired("secret"); error != nil {
+		return
+	}
+	if error := azureSingleKeyvaultCmd.MarkFlagRequired("subscription"); error != nil {
+		return
+	}
 
 	rootCmd.AddCommand(azureSingleKeyvaultCmd)
 }

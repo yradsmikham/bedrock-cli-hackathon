@@ -12,14 +12,14 @@ import (
 	"github.com/yradsmikham/bedrock-cli/utils"
 )
 
-func setEnv(name string) (err error) {
+func setEnv(name string) {
 	// must retreive environment variables from bedrock-config and set them as environment variables
 	viper.SetConfigName("bedrock-config")             // name of config file (without extension)
 	viper.AddConfigPath(name + "/azure-common-infra") // path to look for the config file in
 	viper.AddConfigPath(name + "/azure-multiple-clusters")
 	errr := viper.ReadInConfig() // Find and read the config file
 	if errr != nil {             // Handle errors reading the config file
-		panic(fmt.Errorf("Fatal error config file: %s \n", errr))
+		panic(fmt.Errorf("Fatal error config file: %s", errr))
 	}
 
 	log.Info(emoji.Sprintf(":arrows_clockwise: Setting Environments Variables..."))
@@ -28,7 +28,6 @@ func setEnv(name string) (err error) {
 	os.Setenv("ARM_CLIENT_SECRET", viper.GetString("secret"))
 	os.Setenv("ARM_TENANT_ID", viper.GetString("tenant_id"))
 
-	return err
 }
 
 // Simulate or dry-run a bedrock environment creation (azure simple, multi-cluster, keyvault, etc.)

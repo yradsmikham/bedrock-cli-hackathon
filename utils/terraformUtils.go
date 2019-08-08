@@ -2,7 +2,6 @@ package utils
 
 import (
 	"bufio"
-	"os"
 	"os/exec"
 
 	"github.com/kyokomi/emoji"
@@ -14,7 +13,7 @@ func runCommandWithOutput(cmd *exec.Cmd) (err error) {
 	// create a pipe for the output of the script
 	cmdReader, err := cmd.StdoutPipe()
 	if err != nil {
-		log.Error(os.Stderr, "Error creating StdoutPipe for cmd", err)
+		log.Error("Error creating StdoutPipe for cmd", err)
 		return
 	}
 
@@ -27,13 +26,13 @@ func runCommandWithOutput(cmd *exec.Cmd) (err error) {
 
 	err = cmd.Start()
 	if err != nil {
-		log.Error(os.Stderr, "Error starting Cmd", err)
+		log.Error("Error starting Cmd", err)
 		return
 	}
 
 	err = cmd.Wait()
 	if err != nil {
-		log.Error(os.Stderr, "Error waiting for Cmd", err)
+		log.Error("Error waiting for Cmd", err)
 		return
 	}
 

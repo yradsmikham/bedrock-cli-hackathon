@@ -60,7 +60,7 @@ func Init(environment string, clusterName string) (configPath string, err error)
 		err = addConfigTemplate(environment, fullEnvironmentPath, environmentPath, randomClusterName, SSHKey)
 
 		if err == nil {
-			return "", nil
+			return
 		}
 	}
 	configPath = fullEnvironmentPath + "/bedrock-config.tfvars"

@@ -27,7 +27,11 @@ func init() {
 	azureSimpleCmd.Flags().StringVar(&secret, "secret", "", "Password for the Service Principal")
 	azureSimpleCmd.Flags().StringVar(&gitopsSSHUrl, "gitops-ssh-url", "git@github.com:timfpark/fabrikate-cloud-native-manifests.git", "The git repo that contains the resource manifests that should be deployed in the cluster in ssh format.")
 	azureSimpleCmd.Flags().StringVar(&clusterName, "cluster-name", "", "Name of AKS Cluster")
-	azureSimpleCmd.MarkFlagRequired("sp")
-	azureSimpleCmd.MarkFlagRequired("secret")
+	if error := azureSimpleCmd.MarkFlagRequired("sp"); error != nil {
+		return
+	}
+	if error := azureSimpleCmd.MarkFlagRequired("secret"); error != nil {
+		return
+	}
 	rootCmd.AddCommand(azureSimpleCmd)
 }

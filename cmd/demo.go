@@ -100,7 +100,11 @@ var demoCmd = &cobra.Command{
 func init() {
 	demoCmd.Flags().StringVar(&servicePrincipal, "sp", "", "Service Principal App Id")
 	demoCmd.Flags().StringVar(&secret, "secret", "", "Password for the Service Principal")
-	demoCmd.MarkFlagRequired("sp")
-	demoCmd.MarkFlagRequired("secret")
+	if error := demoCmd.MarkFlagRequired("sp"); error != nil {
+		return
+	}
+	if error := demoCmd.MarkFlagRequired("secret"); error != nil {
+		return
+	}
 	rootCmd.AddCommand(demoCmd)
 }

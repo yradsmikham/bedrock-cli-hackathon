@@ -42,7 +42,7 @@ func SSH(path string, name string) (key string, err error) {
 		return string(file), nil
 	}
 
-	return "", err
+	return
 }
 
 var sshCmd = &cobra.Command{
