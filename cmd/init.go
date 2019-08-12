@@ -286,6 +286,7 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 		singleKeyvaultConfig["gitops_ssh_url"] = "\"" + gitopsSSHUrl + "\""
 		singleKeyvaultConfig["gitops_ssh_key"] = "\"" + "deploy-key" + "\""
 		singleKeyvaultConfig["keyvault_resource_group"] = "\"" + clusterName + "-kv-rg\""
+		singleKeyvaultConfig["keyvault_name"] = "\"" + clusterName + "-kv\""
 		singleKeyvaultConfig["subnet_prefixes"] = "\"" + "10.39.0.0/16" + "\""
 		singleKeyvaultConfig["vnet_subnet_id"] = "\"/subscriptions/" + subscription + "/resourceGroups/" + clusterName + "-kv-rg/providers/Microsoft.Network/virtualNetworks/" + clusterName + "-vnet/subnets/" + clusterName + "-subnet" + "\""
 

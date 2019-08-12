@@ -75,6 +75,12 @@ func TerraformPlan(directory string) (err error) {
 
 	tfPlanCmd := exec.Command("terraform", "plan", "-var-file=bedrock-config.tfvars")
 	tfPlanCmd.Dir = directory
+	/* 	if output, err := tfPlanCmd.CombinedOutput(); err != nil {
+		log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
+		return err
+	} */
+
+	log.Info(emoji.Sprintf("DIRECTORY: %s", directory))
 	if err := runCommandWithOutput(tfPlanCmd); err != nil {
 		log.Error(emoji.Sprintf(":no_entry_sign: %s", err))
 		return err

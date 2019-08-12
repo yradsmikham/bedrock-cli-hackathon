@@ -11,10 +11,10 @@ func TestSimulate(t *testing.T) {
 	env := map[string]string{
 		// names in lowercase because azure-multiple-clusters env requires a domain_name_label
 		//that uses only lowercase alphanumeric characters, numbers and hyphens
-		"azuresimple":   SIMPLE,
-		"azurecommon":   COMMON,
-		"azuresinglekv": KEYVAULT,
-		"azuremultiple": MULTIPLE,
+		"azure-simple":   SIMPLE,
+		"azure-common":   COMMON,
+		"azure-singlekv": KEYVAULT,
+		"azure-multiple": MULTIPLE,
 	}
 
 	for k, v := range env {
