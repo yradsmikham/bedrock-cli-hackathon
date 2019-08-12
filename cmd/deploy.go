@@ -8,7 +8,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
-	"github.com/yradsmikham/bedrock-cli/utils"
+	"github.com/yradsmikham/bedrock-cli/util"
 )
 
 // Deploy a bedrock environment by executing `terraform apply`
