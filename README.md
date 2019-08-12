@@ -1,6 +1,5 @@
 # Bedrock CLI
 [![Build Status](https://dev.azure.com/epicstuff/bedrock-cli/_apis/build/status/yradsmikham.bedrock-cli?branchName=master)](https://dev.azure.com/epicstuff/bedrock-cli/_build/latest?definitionId=106&branchName=master)
-
 [![Go Report Card](https://goreportcard.com/badge/github.com/yradsmikham/bedrock-cli)](https://goreportcard.com/report/github.com/yradsmikham/bedrock-cli)
 
 
