@@ -15,7 +15,7 @@ func azureSimple(servicePrincipal string, secret string) (err error) {
 }
 
 var azureSimpleCmd = &cobra.Command{
-	Use:   SIMPLE + " --sp service-principal-app-id --secret service-principal-password [--gitops-ssh-url manifestrrepo url in ssh format --cluster-name cluster-name]",
+	Use:   SIMPLE + " --sp service-principal-app-id --secret service-principal-password --gitops-ssh-url manifestr-repo-url-in-ssh-format [--cluster-name name-of-AKS-cluster]",
 	Short: "Deploys a Bedrock Simple Azure Kubernetes Service (AKS) cluster configuration",
 	Long:  `Deploys a Bedrock Simple Azure Kubernetes Service (AKS) cluster configuration`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {

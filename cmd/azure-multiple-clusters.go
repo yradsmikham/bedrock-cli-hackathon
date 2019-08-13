@@ -24,7 +24,7 @@ func azureMultiCluster(servicePrincipal string, secret string) (err error) {
 }
 
 var azureMultiClusterCmd = &cobra.Command{
-	Use:   MULTIPLE + " --subscription subscription-id --sp service-principal-app-id --secret service-principal-password --tenant tenant-id [--gitops-ssh-url manifest-repo-url-in-ssh-format | --cluster-name cluster-name ]",
+	Use:   MULTIPLE + " --subscription subscription-id --sp service-principal-app-id --secret service-principal-password --tenant tenant-id --gitops-ssh-url manifest-repo-url-in-ssh-format [--cluster-name name-of-AKS-cluster]",
 	Short: "Deploys Bedrock Multiple Azure Kubernetes Service (AKS) cluster configuration",
 	Long:  `Deploys Bedrock Multiple Azure Kubernetes Service (AKS) cluster configuration`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {

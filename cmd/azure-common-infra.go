@@ -19,7 +19,7 @@ var accessKey string
 var containerName string
 
 var commonInfraCmd = &cobra.Command{
-	Use:   COMMON + " --sp service-principal-app-id --tenant tenant-id --storage-account storage-account-name --access-key access-key --container-name storage-container-name [ --cluster-name cluster-name] ",
+	Use:   COMMON + " --sp service-principal-app-id --tenant tenant-id --storage-account storage-account-name --access-key access-key --container-name storage-container-name [--cluster-name name-of-AKS-cluster] ",
 	Short: "Deploys the Bedrock Common Infra Environment",
 	Long:  `Deploys the Bedrock Common Infra Environment`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {

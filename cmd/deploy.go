@@ -8,7 +8,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
-	"github.com/yradsmikham/bedrock-cli/util"
+	utils "github.com/yradsmikham/bedrock-cli/util"
 )
 
 // Deploy a bedrock environment by executing `terraform apply`
@@ -54,7 +54,7 @@ func Deploy(name string) (err error) {
 				return error
 			}
 
-			// TO-DO: Built a function to handle this?
+			// Add to local kubeconfig
 			log.Info(emoji.Sprintf(":mailbox_with_mail: Found Kubeconfig output. Merging into local kubeconfig."))
 			mergeConfigCmd := exec.Command("/bin/sh", "-c", "KUBECONFIG=./output/bedrock_kube_config:~/.kube/config kubectl config view --flatten > merged-config && mv merged-config ~/.kube/config")
 			mergeConfigCmd.Dir = name + "/azure-simple"
@@ -79,6 +79,7 @@ func Deploy(name string) (err error) {
 				return error
 			}
 
+			// Add to local kubeconfig
 			log.Info(emoji.Sprintf(":mailbox_with_mail: Found Kubeconfig output. Merging into local kubeconfig."))
 			mergeConfigCmd := exec.Command("/bin/sh", "-c", "KUBECONFIG=./output/bedrock_kube_config:~/.kube/config kubectl config view --flatten > merged-config && mv merged-config ~/.kube/config")
 			mergeConfigCmd.Dir = name + "/azure-single-keyvault"
@@ -105,7 +106,7 @@ func Deploy(name string) (err error) {
 
 			// TO-DO: For multiple cluster, must add each cluster individually
 			log.Info(emoji.Sprintf(":mailbox_with_mail: Found Kubeconfig output. Merging into local kubeconfig."))
-			mergeConfigCmd := exec.Command("/bin/sh", "-c", "KUBECONFIG=./output/bedrock_kube_config:~/.kube/config kubectl config view --flatten > merged-config && mv merged-config ~/.kube/config")
+			mergeConfigCmd := exec.Command("/bin/sh", "-c", "for f in output/*kube_config; do KUBECONFIG=$f:~/.kube/config kubectl config view --flatten > merged-config && mv merged-config ~/.kube/config; done")
 			mergeConfigCmd.Dir = name + "/azure-multiple-clusters"
 			if output, err := mergeConfigCmd.CombinedOutput(); err != nil {
 				log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))

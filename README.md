@@ -28,7 +28,7 @@ Install the latest Bedrock CLI on your local machine from the releases, unzippin
 You can spin up a Bedrock Azure Simple cluster by running the following command:
 
 ```
-bedrock demo --sp <service principal id> --secret <password for the service principal id>
+bedrock demo --sp <service principal id> --secret <password for the service principal id> --gitops-ssh-url <manifest repo url in ssh format>
 ```
 
 `demo` is a quick and easy command that does the following:
@@ -38,10 +38,22 @@ bedrock demo --sp <service principal id> --secret <password for the service prin
 3. Makes a copy of the Bedrock `azure-simple` environment.
 4. Populates the variables required for the `azure-simple` environment (generates a `bedrock-config.tfvars`).
 5. Generates new SSH Keys for the new `azure-simple` environment.
-6. Executes `terraform init`.
-7. Executes `terraform apply`.
-8. Adds the newly created Bedrock Azure Simple Cluster to your local KUBECONFIG.
+6. Configures Flux to sync with the specified materialized manifest repo (provided by `--gitops-ssh-url`).
+7. Executes `terraform init`.
+8. Executes `terraform plan`
+9. Executes `terraform apply`.
+10. Adds the newly created Bedrock Azure Simple Cluster to your local KUBECONFIG file.
 
 ![Bedrock CLI Demo](./images/bedrock_demo.gif)
+
+If you would like to deploy an `azure-simple` cluster with _custom_ variables:
+
+```
+bedrock azure-simple --sp <service principal id> --secret <password for the service principal id> --gitops-ssh-url <manifest repo url in ssh format> [--cluster-name <name of AKS cluster>]
+```
+
+The following variables are (currently) supported:
+- `cluster-name`: Name of the Kubernetes cluster you want to create.
+- `gitops-ssh-url`: The git repo that contains the resource manifests that should be deployed in the cluster in ssh formate (e.g. git@github.com:timfpark/fabrikate-cloud-native-manifests.git). This repo must have a deployment key configured to accept changes, which the CLI will generate for you.
 
 The Bedrock CLI also supports other environments such as `azure-common-infra`, `azure-single-keyvault`, and `azure-multiple-clusters`. Check out `bedrock info <environment>` for more information on how to create these environments with the CLI.

@@ -37,7 +37,7 @@ var commonInfraPath string
 var subscription string
 
 var azureSingleKeyvaultCmd = &cobra.Command{
-	Use:   KEYVAULT + " --subscription subscription-id --sp service-principal-app-id --secret service-principal-password --storage-account storage-account-name --access-key storage-account-access-key --container-name storage-container-name [--gitops-ssh-url manifest-repo-url-in-ssh-format | --cluster-name cluster-name | --tenant tenant-id | --common-infra-path common-infra-path]",
+	Use:   KEYVAULT + " --subscription subscription-id --sp service-principal-app-id --secret service-principal-password --storage-account storage-account-name --access-key storage-account-access-key --container-name storage-container-name --gitops-ssh-url manifest-repo-url-in-ssh-format [--cluster-name name-of-AKS-cluster] [--tenant service-principal-tenant-id] [--common-infra-path path-to-azure-common-infra-environment]",
 	Short: "Deploys a Bedrock Azure Kubernetes Service (AKS) cluster with an Azure Key Vault",
 	Long:  `Deploys a Bedrock Azure Kubernetes Service (AKS) cluster with an Azure Key Vault. Make sure a successful deployment of ` + COMMON + ` is complete before attempting to deploy this one`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -51,7 +51,7 @@ func init() {
 	azureSingleKeyvaultCmd.Flags().StringVar(&subscription, "subscription", "", "Subscription Id")
 	azureSingleKeyvaultCmd.Flags().StringVar(&secret, "secret", "", "Password for the Service Principal")
 	azureSingleKeyvaultCmd.Flags().StringVar(&gitopsSSHUrl, "gitops-ssh-url", "git@github.com:timfpark/fabrikate-cloud-native-manifests.git", "The git repo that contains the resource manifests that should be deployed in the cluster in ssh format")
-	azureSingleKeyvaultCmd.Flags().StringVar(&commonInfraPath, "common-infra-path", "", "Common infra path for a successful deployment")
+	azureSingleKeyvaultCmd.Flags().StringVar(&commonInfraPath, "common-infra-path", "", "Successful deployment of an Azure Common Infra environment")
 	azureSingleKeyvaultCmd.Flags().StringVar(&tenant, "tenant", "", "Tenant ID for the Service Principal")
 	azureSingleKeyvaultCmd.Flags().StringVar(&storageAccount, "storage-account", "", "Storage Account Name")
 	azureSingleKeyvaultCmd.Flags().StringVar(&accessKey, "access-key", "", "Storage Account Access Key")

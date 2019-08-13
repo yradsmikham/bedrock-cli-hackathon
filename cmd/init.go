@@ -336,17 +336,23 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 		multipleConfig := make(map[string]string)
 
 		// When common infra is not initialized, create one
-		/* if commonInfraPath == "" {
+		if commonInfraPath == "" {
 			log.Info(emoji.Sprintf(":two_men_holding_hands: Common Infra path is not set, creating common infra with tenant id %s", tenant))
-			Init(COMMON)
+			if error := Init(COMMON, clusterName); error != nil {
+				return error
+			}
 		}
-
-		log.Info(emoji.Sprintf(":family: Common Infra path is set to %s", commonInfraPath))
-		copyCommonInfraTemplateToPath(commonInfraPath, fullEnvironmentPath, environmentPath, environment, multipleConfig)
-		*/
 
 		if error := getEnvVariables(); error != nil {
 			return error
+		}
+
+		log.Info(emoji.Sprintf(":family: Common Infra path is set to %s", commonInfraPath))
+
+		if clusterName == "" {
+			if error := copyCommonInfraTemplateToPath(commonInfraPath, fullEnvironmentPath, environmentPath, environment, multipleConfig); error != nil {
+				return error
+			}
 		}
 
 		multipleConfig["agent_vm_count"] = "\"" + "3" + "\""
