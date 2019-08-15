@@ -2,12 +2,12 @@
 [![Build Status](https://dev.azure.com/epicstuff/bedrock-cli/_apis/build/status/yradsmikham.bedrock-cli?branchName=master)](https://dev.azure.com/epicstuff/bedrock-cli/_build/latest?definitionId=106&branchName=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/yradsmikham/bedrock-cli)](https://goreportcard.com/report/github.com/yradsmikham/bedrock-cli)
 
-
 Bedrock CLI is an open-source project that was developed to supplement Project Bedrock. It is a wrapper for `terraform`, `az` cli, and `kubectl` in order to extend features in Bedrock.
 
 This command line tool will help simplify the automation and management of your Kubernetes resource deployments across clusters and environments, allowing you to rollout processes and find deployment issues more quickly.
 
 ## Prerequisites
+
   1. Azure Subscription
   2. Azure CLI
   3. Terraform
@@ -27,7 +27,7 @@ Install the latest Bedrock CLI on your local machine from the releases, unzippin
 
 You can spin up a Bedrock Azure Simple cluster by running the following command:
 
-```
+```bash
 bedrock demo --sp <service principal id> --secret <password for the service principal id> --gitops-ssh-url <manifest repo url in ssh format>
 ```
 
@@ -48,12 +48,20 @@ bedrock demo --sp <service principal id> --secret <password for the service prin
 
 If you would like to deploy an `azure-simple` cluster with _custom_ variables:
 
-```
+```bash
 bedrock azure-simple --sp <service principal id> --secret <password for the service principal id> --gitops-ssh-url <manifest repo url in ssh format> [--cluster-name <name of AKS cluster>]
 ```
 
-The following variables are (currently) supported:
+The following variables are supported as command arguments:
+
 - `cluster-name`: Name of the Kubernetes cluster you want to create.
-- `gitops-ssh-url`: The git repo that contains the resource manifests that should be deployed in the cluster in ssh formate (e.g. git@github.com:timfpark/fabrikate-cloud-native-manifests.git). This repo must have a deployment key configured to accept changes, which the CLI will generate for you.
+- `gitops-ssh-url`: The git repo that contains the resource manifests that should be deployed in the cluster in SSH format (e.g. `git@github.com:timfpark/fabrikate-cloud-native-manifests.git`). This repo must have a deployment key configured to accept changes, which the CLI will generate for you.
+- `region`: Azure region the resource group should be created in.
+- `vm-count`: The number of agents VMs in the the node pool.
+- `vnet`: Name of vnet.
+- `dns-prefix`: DNS name for accessing the cluster from the internet (up to 64 characters in length, alphanumeric characters and hyphen '-' allowed, and must start with a letter).
+- `poll-interval`: Period at which to poll git repo for new commits via Flux.
+- `repo-path`:  Path to a subdirectory, or folder in a git repo.
+- `branch`: Branch in the git repo.
 
 The Bedrock CLI also supports other environments such as `azure-common-infra`, `azure-single-keyvault`, and `azure-multiple-clusters`. Check out `bedrock info <environment>` for more information on how to create these environments with the CLI.

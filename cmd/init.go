@@ -26,11 +26,11 @@ func Init(environment string, clusterName string) (err error) {
 		log.Info(emoji.Sprintf(":mag: Using %s: %s", tool, path))
 	}
 
+	// If cluster name not provided, generate a random cluster name
 	if clusterName == "" {
 		rand.Seed(time.Now().UnixNano())
 		randomClusterName = strings.Replace(namesgenerator.GetRandomName(0), "_", "-", -1)
-	} else {
-		randomClusterName = clusterName
+		clusterName = randomClusterName
 	}
 
 	// Check if Bedrock Repo is already cloned
@@ -40,7 +40,7 @@ func Init(environment string, clusterName string) (err error) {
 	}
 
 	// Copy Terraform Template
-	environmentPath := "bedrock/cluster/environments/" + randomClusterName
+	environmentPath := "bedrock/cluster/environments/" + clusterName
 	if error := os.MkdirAll(environmentPath, os.ModePerm); error != nil {
 		return error
 	}
@@ -51,14 +51,14 @@ func Init(environment string, clusterName string) (err error) {
 		return err
 	}
 
-	// Generate ssh keys
+	// Generate SSH keys
 	fullEnvironmentPath := environmentPath + "/" + environment
 	SSHKey := ""
 	if environment != COMMON {
 		SSHKey, _ = SSH(fullEnvironmentPath, "deploy-key")
 	}
-	// Save bedrock-config.tfvars
-	if err = addConfigTemplate(environment, fullEnvironmentPath, environmentPath, randomClusterName, SSHKey); err != nil {
+	// Create bedrock-config.tfvars
+	if err = addConfigTemplate(environment, fullEnvironmentPath, environmentPath, clusterName, SSHKey); err != nil {
 		return err
 	}
 	return err
@@ -108,7 +108,8 @@ func copyCommonInfraTemplateToPath(commonInfraPath string, fullEnvironmentPath s
 	return err
 }
 
-func getEnvVariables() (err error) {
+// Get environment variables
+func getEnvVariables(clusterName string) (err error) {
 	if storageAccount == "" {
 		storageAccount = os.Getenv("AZURE_STORAGE_ACCOUNT")
 	}
@@ -130,6 +131,18 @@ func getEnvVariables() (err error) {
 	if secret == "" {
 		secret = os.Getenv("ARM_CLIENT_SECRET")
 	}
+	if vnet == "" {
+		vnet = clusterName + "-vnet"
+	}
+	if dnsPrefix == "" {
+		dnsPrefix = clusterName
+	}
+	if keyvaultName == "" {
+		keyvaultName = clusterName + "-kv"
+	}
+	if keyvaultRG == "" {
+		keyvaultRG = clusterName + "-kv-rg"
+	}
 	return err
 }
 
@@ -140,24 +153,26 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 	if environment == SIMPLE {
 		azureSimpleConfig := make(map[string]string)
 
-		if error := getEnvVariables(); error != nil {
+		if error := getEnvVariables(clusterName); error != nil {
 			return error
 		}
 
 		azureSimpleConfig["resource_group_name"] = "\"" + clusterName + "-rg\""
-		azureSimpleConfig["resource_group_location"] = "\"\""
+		azureSimpleConfig["resource_group_location"] = "\"" + region + "\""
 		azureSimpleConfig["cluster_name"] = "\"" + clusterName + "\""
-		azureSimpleConfig["agent_vm_count"] = "\"\""
-		azureSimpleConfig["dns_prefix"] = "\"" + clusterName + "\""
+		azureSimpleConfig["dns_prefix"] = "\"" + dnsPrefix + "\""
 		azureSimpleConfig["service_principal_id"] = "\"" + servicePrincipal + "\""
 		azureSimpleConfig["service_principal_secret"] = "\"" + secret + "\""
 		azureSimpleConfig["ssh_public_key"] = "\"" + SSHKey + "\""
 		azureSimpleConfig["gitops_ssh_url"] = "\"" + gitopsSSHUrl + "\""
 		azureSimpleConfig["gitops_ssh_key"] = "\"" + "deploy-key" + "\""
-		azureSimpleConfig["vnet_name"] = "\"" + clusterName + "-vnet\""
-		azureSimpleConfig["agent_vm_count"] = "\"" + "3" + "\""
-		azureSimpleConfig["resource_group_location"] = "\"" + "westus2" + "\""
+		azureSimpleConfig["vnet_name"] = "\"" + vnet + "\""
+		azureSimpleConfig["agent_vm_count"] = "\"" + vmCount + "\""
+		azureSimpleConfig["gitops_poll_interval"] = "\"" + gitopsPollInterval + "\""
+		azureSimpleConfig["gitops_url_branch"] = "\"" + gitopsURLBranch + "\""
+		azureSimpleConfig["gitops_path"] = "\"" + gitopsPath + "\""
 
+		// Generate bedrock-config.tfvars
 		f, err := os.Create(fullEnvironmentPath + "/bedrock-config.tfvars")
 		log.Info(emoji.Sprintf(":page_with_curl: Create Bedrock config file " + fullEnvironmentPath + "/bedrock-config.tfvars"))
 		if err != nil {
@@ -181,22 +196,23 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 	if environment == COMMON {
 		commonInfraConfig := make(map[string]string)
 
-		if error := getEnvVariables(); error != nil {
+		if error := getEnvVariables(clusterName); error != nil {
 			return error
 		}
 
-		commonInfraConfig["global_resource_group_name"] = "\"" + clusterName + "-kv-rg\""
-		commonInfraConfig["global_resource_group_location"] = "\"" + "westus2" + "\""
-		commonInfraConfig["keyvault_name"] = "\"" + clusterName + "-kv\""
+		commonInfraConfig["global_resource_group_name"] = "\"" + keyvaultRG + "\""
+		commonInfraConfig["global_resource_group_location"] = "\"" + region + "\""
+		commonInfraConfig["keyvault_name"] = "\"" + keyvaultName + "\""
 		commonInfraConfig["service_principal_id"] = "\"" + servicePrincipal + "\""
 		commonInfraConfig["tenant_id"] = "\"" + tenant + "\""
-		commonInfraConfig["address_space"] = "\"" + "10.39.0.0/16" + "\""
-		commonInfraConfig["subnet_prefix"] = "\"" + "10.39.0.0/24" + "\""
+		commonInfraConfig["address_space"] = "\"" + addressSpace + "\""
+		commonInfraConfig["subnet_prefix"] = "\"" + subnetPrefix + "\""
 		commonInfraConfig["subnet_name"] = "\"" + clusterName + "-subnet\""
 		commonInfraConfig["vnet_name"] = "\"" + clusterName + "-vnet\""
 		commonInfraConfig["subscription"] = "\"" + subscription + "\""
 		commonInfraConfig["secret"] = "\"" + secret + "\""
 
+		// Generate bedrock-config.tfvars
 		f, err := os.Create(fullEnvironmentPath + "/bedrock-config.tfvars")
 		log.Info(emoji.Sprintf(":page_with_curl: Create Bedrock config file " + fullEnvironmentPath + "/bedrock-config.tfvars"))
 		if err != nil {
@@ -232,6 +248,7 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 		commonInfraBackendConfig["container_name"] = "\"" + containerName + "\""
 		commonInfraBackendConfig["key"] = "\"" + "tfstate-common-infra-" + clusterName + "\""
 
+		// Generate backend-config.tfvars
 		backendFile, err := os.Create(fullEnvironmentPath + "/bedrock-backend-config.tfvars")
 		log.Info(emoji.Sprintf(":page_with_curl: Create Bedrock backend config file " + fullEnvironmentPath + "/bedrock-backend-config.tfvars"))
 		if err != nil {
@@ -263,7 +280,7 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 			}
 		}
 
-		if error := getEnvVariables(); error != nil {
+		if error := getEnvVariables(clusterName); error != nil {
 			return error
 		}
 
@@ -276,19 +293,24 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 		}
 
 		singleKeyvaultConfig["resource_group_name"] = "\"" + clusterName + "-rg\""
-		singleKeyvaultConfig["resource_group_location"] = "\"" + "westus2" + "\""
+		singleKeyvaultConfig["resource_group_location"] = "\"" + region + "\""
 		singleKeyvaultConfig["cluster_name"] = "\"" + clusterName + "\""
-		singleKeyvaultConfig["agent_vm_count"] = "\"" + "3" + "\""
-		singleKeyvaultConfig["agent_vm_size"] = "\"Standard_D4s_v3\""
+		singleKeyvaultConfig["agent_vm_size"] = "\"" + vmSize + "\""
 		singleKeyvaultConfig["service_principal_id"] = "\"" + servicePrincipal + "\""
 		singleKeyvaultConfig["service_principal_secret"] = "\"" + secret + "\""
 		singleKeyvaultConfig["ssh_public_key"] = "\"" + SSHKey + "\""
 		singleKeyvaultConfig["gitops_ssh_url"] = "\"" + gitopsSSHUrl + "\""
 		singleKeyvaultConfig["gitops_ssh_key"] = "\"" + "deploy-key" + "\""
-		singleKeyvaultConfig["keyvault_resource_group"] = "\"" + clusterName + "-kv-rg\""
-		singleKeyvaultConfig["keyvault_name"] = "\"" + clusterName + "-kv\""
-		singleKeyvaultConfig["subnet_prefixes"] = "\"" + "10.39.0.0/16" + "\""
-		singleKeyvaultConfig["vnet_subnet_id"] = "\"/subscriptions/" + subscription + "/resourceGroups/" + clusterName + "-kv-rg/providers/Microsoft.Network/virtualNetworks/" + clusterName + "-vnet/subnets/" + clusterName + "-subnet" + "\""
+		singleKeyvaultConfig["keyvault_resource_group"] = "\"" + keyvaultRG + "\""
+		singleKeyvaultConfig["keyvault_name"] = "\"" + keyvaultName + "\""
+		singleKeyvaultConfig["vnet_subnet_id"] = "\"/subscriptions/" + subscription + "/resourceGroups/" + keyvaultRG + "/providers/Microsoft.Network/virtualNetworks/" + clusterName + "-vnet/subnets/" + clusterName + "-subnet" + "\""
+		singleKeyvaultConfig["agent_vm_count"] = "\"" + vmCount + "\""
+		singleKeyvaultConfig["gitops_poll_interval"] = "\"" + gitopsPollInterval + "\""
+		singleKeyvaultConfig["gitops_url_branch"] = "\"" + gitopsURLBranch + "\""
+		singleKeyvaultConfig["gitops_path"] = "\"" + gitopsPath + "\""
+		singleKeyvaultConfig["dns_prefix"] = "\"" + dnsPrefix + "\""
+		singleKeyvaultConfig["address_space"] = "\"" + addressSpace + "\""
+		singleKeyvaultConfig["subnet_prefixes"] = "\"" + subnetPrefix + "\""
 
 		f, err := os.Create(fullEnvironmentPath + "/bedrock-config.tfvars")
 		log.Info(emoji.Sprintf(":page_with_curl: Create Bedrock config file " + environmentPath + "/bedrock-config.tfvars"))
@@ -304,6 +326,7 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 
 		f.Close()
 
+		// Generate backend-config.tfvars
 		singleKeyvaultBackendConfig := make(map[string]string)
 
 		singleKeyvaultBackendConfig["storage_account_name"] = "\"" + storageAccount + "\""
@@ -335,15 +358,15 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 
 		multipleConfig := make(map[string]string)
 
-		// When common infra is not initialized, create one
-		if commonInfraPath == "" {
+		// When keyvault is not specified and common infra is not initialized, create one
+		if keyvaultName == "" && keyvaultRG == "" && commonInfraPath == "" {
 			log.Info(emoji.Sprintf(":two_men_holding_hands: Common Infra path is not set, creating common infra with tenant id %s", tenant))
 			if error := Init(COMMON, clusterName); error != nil {
 				return error
 			}
 		}
 
-		if error := getEnvVariables(); error != nil {
+		if error := getEnvVariables(clusterName); error != nil {
 			return error
 		}
 
@@ -359,8 +382,8 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 		multipleConfig["agent_vm_size"] = "\"" + "Standard_D4s_v3" + "\""
 		multipleConfig["cluster_name"] = "\"" + clusterName + "\""
 		multipleConfig["dns_prefix"] = "\"" + clusterName + "\""
-		multipleConfig["keyvault_resource_group"] = "\"" + clusterName + "-kv-rg\""
-		multipleConfig["keyvault_name"] = "\"" + clusterName + "-kv\""
+		multipleConfig["keyvault_resource_group"] = "\"" + keyvaultRG + "\""
+		multipleConfig["keyvault_name"] = "\"" + keyvaultName + "\""
 		multipleConfig["service_principal_id"] = "\"" + servicePrincipal + "\""
 		multipleConfig["service_principal_secret"] = "\"" + secret + "\""
 		multipleConfig["ssh_public_key"] = "\"" + SSHKey + "\""
@@ -372,15 +395,18 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 		multipleConfig["traffic_manager_resource_group_location"] = "\"" + "westus2" + "\""
 		multipleConfig["west_resource_group_name"] = "\"" + clusterName + "-west-rg\""
 		multipleConfig["west_resource_group_location"] = "\"" + "westus2" + "\""
-		multipleConfig["gitops_west_path"] = "\"\""
+		multipleConfig["gitops_west_path"] = "\"" + gitopsPathWest + "\""
 		multipleConfig["east_resource_group_name"] = "\"" + clusterName + "-east-rg\""
 		multipleConfig["east_resource_group_location"] = "\"" + "eastus" + "\""
-		multipleConfig["gitops_east_path"] = "\"\""
+		multipleConfig["gitops_east_path"] = "\"" + gitopsPathEast + "\""
 		multipleConfig["central_resource_group_name"] = "\"" + clusterName + "-central-rg\""
 		multipleConfig["central_resource_group_location"] = "\"" + "centralus" + "\""
-		multipleConfig["gitops_central_path"] = "\"\""
-		multipleConfig["subscription"] = "\"" + subscription + "\""
+		multipleConfig["gitops_central_path"] = "\"" + gitopsPathCentral + "\""
+		multipleConfig["gitops_central_url_branch"] = "\"" + gitopsURLBranchCentral + "\""
+		multipleConfig["gitops_east_url_branch"] = "\"" + gitopsURLBranchEast + "\""
+		multipleConfig["gitops_west_url_branch"] = "\"" + gitopsURLBranchWest + "\""
 
+		// Generate bedrock-config.tfvars
 		f, err := os.Create(fullEnvironmentPath + "/bedrock-config.tfvars")
 		log.Info(emoji.Sprintf(":page_with_curl: Create Bedrock config file " + fullEnvironmentPath + "/bedrock-config.tfvars"))
 		if err != nil {

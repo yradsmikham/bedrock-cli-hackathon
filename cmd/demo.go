@@ -40,10 +40,7 @@ func Demo(servicePrincipal string, secret string) (err error) {
 		return error
 	}
 
-	if err == nil {
-		log.Info(emoji.Sprintf(":raised_hands: Cluster has been successfully created!"))
-	}
-
+	log.Info(emoji.Sprintf(":raised_hands: Cluster has been successfully created!"))
 	return err
 }
 
@@ -52,7 +49,7 @@ var servicePrincipal string
 var secret string
 
 var demoCmd = &cobra.Command{
-	Use:   "demo --sp service-principal-app-id --secret service-principal-password --gitops-ssh-url manifestrrepo url in ssh format",
+	Use:   "demo --sp service-principal-app-id --secret service-principal-password --gitops-ssh-url manifest-repo-url-in-ssh-format",
 	Short: "Demo an Azure Kubernetes Service (AKS) cluster using Terraform",
 	Long:  `Demo an Azure Kubernetes Service (AKS) cluster using Terraform`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
