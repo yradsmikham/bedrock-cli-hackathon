@@ -119,9 +119,9 @@ func generateTfvars(envPath string, envType string, clusterName string, sshKey s
 	configMap := make(map[string]string)
 	backendConfigMap := make(map[string]string)
 
-	backendTfvarsFile, err := os.Create(envPath + "/bedrock-backend-config.tfvars")
-	tfvarsFile, err := os.Create(envPath + "/bedrock-config.tfvars")
-	configTomlFile, err := os.Create(envPath + "/bedrock-config.toml")
+	backendTfvarsFile, _ := os.Create(envPath + "/bedrock-backend-config.tfvars")
+	tfvarsFile, _ := os.Create(envPath + "/bedrock-config.tfvars")
+	configTomlFile, _ := os.Create(envPath + "/bedrock-config.toml")
 	log.Info(emoji.Sprintf(":page_with_curl: Create Bedrock config file " + envPath + "/bedrock-config.tfvars"))
 
 	// Supported environments
