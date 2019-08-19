@@ -6,6 +6,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var gitopsPathWest string
+var gitopsPathEast string
+var gitopsPathCentral string
+var gitopsURLBranchWest string
+var gitopsURLBranchEast string
+var gitopsURLBranchCentral string
+
 // Initializes the configuration for the given environment
 func azureMultiCluster(servicePrincipal string, secret string) (err error) {
 	if tenant == "" {
@@ -17,7 +24,7 @@ func azureMultiCluster(servicePrincipal string, secret string) (err error) {
 		return err
 	}
 
-	if error := Init(MULTIPLE, clusterName); error != nil {
+	if _, error := Init(MULTIPLE, clusterName); error != nil {
 		return error
 	}
 	return err
@@ -32,13 +39,6 @@ var azureMultiClusterCmd = &cobra.Command{
 		return azureMultiCluster(servicePrincipal, secret)
 	},
 }
-
-var gitopsPathWest string
-var gitopsPathEast string
-var gitopsPathCentral string
-var gitopsURLBranchWest string
-var gitopsURLBranchEast string
-var gitopsURLBranchCentral string
 
 func init() {
 	azureMultiClusterCmd.Flags().StringVar(&servicePrincipal, "sp", "", "Service Principal App Id")

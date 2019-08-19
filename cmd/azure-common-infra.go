@@ -1,22 +1,29 @@
 package cmd
 
 import (
+	"github.com/kyokomi/emoji"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
 var tenant string
-
-// Initializes the configuration for the given environment
-func commonInfra(servicePrincipal string, tenant string, storageAccount string, accessKey string, containerName string) (err error) {
-	if error := Init(COMMON, clusterName); error != nil {
-		return error
-	}
-	return err
-}
-
 var storageAccount string
 var accessKey string
 var containerName string
+var clusterName string
+var commonInfraName string
+
+// Initializes the configuration for the given environment
+func commonInfra(servicePrincipal string, tenant string, storageAccount string, accessKey string, containerName string) (err error) {
+	commonInfraName, error := Init(COMMON, clusterName)
+	if error != nil {
+		return error
+	}
+
+	log.Info(emoji.Sprintf(":white_check_mark: To proceed, run 'bedrock simulate bedrock/cluster/environments/" + commonInfraName + "'"))
+
+	return err
+}
 
 var commonInfraCmd = &cobra.Command{
 	Use:   COMMON + " --sp service-principal-app-id --tenant tenant-id --storage-account storage-account-name --access-key access-key --container-name storage-container-name [--cluster-name name-of-AKS-cluster] [--region region-of-resource] [--keyvault name-of-keyvault] [--keyvault-rg name-of-resource-group-for-keyvault] [--address-space address-space] [--subnet-prefix subnet-prefixes]",

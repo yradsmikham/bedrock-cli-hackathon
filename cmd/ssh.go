@@ -15,7 +15,7 @@ func SSH(path string, name string) (key string, err error) {
 	log.Info(emoji.Sprintf(":lock_with_ink_pen: Creating new SSH with name " + name))
 
 	keyPath := path + "/" + name
-	log.Info(emoji.Sprintf(":gift_heart: Current wd is %s", path))
+	log.Info(emoji.Sprintf(":door: Current wd is %s", path))
 
 	if _, err := os.Stat(keyPath); err == nil {
 		log.Info(emoji.Sprintf(":palm_tree: Path to %s exists, removing...", keyPath))
@@ -30,8 +30,8 @@ func SSH(path string, name string) (key string, err error) {
 		return "", err
 	}
 
-	log.Info(emoji.Sprintf(":raised_hands: SSH key " + name + " has been created!"))
-	log.Info(emoji.Sprintf(":pray: Add the following SSH key to 'Deploy Keys' in your Manifest repository"))
+	log.Info(emoji.Sprintf(":key: SSH key " + name + " has been created!"))
+	log.Info(emoji.Sprintf(":rotating_light: Add the following SSH key to 'Deploy Keys' in your Manifest repository"))
 	file, err := ioutil.ReadFile(keyPath + ".pub")
 	if err != nil {
 		log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, file))

@@ -7,8 +7,7 @@ import (
 	"github.com/kyokomi/emoji"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-
-	utils "github.com/yradsmikham/bedrock-cli/util"
+	util "github.com/yradsmikham/bedrock-cli/util"
 )
 
 // Deploy a bedrock environment by executing `terraform apply`
@@ -26,12 +25,12 @@ func Deploy(name string) (err error) {
 			setEnv(name)
 
 			// Terraform Init
-			if error := utils.TerraformInitBackend(name + "/azure-common-infra"); error != nil {
+			if error := util.TerraformInitBackend(name + "/azure-common-infra"); error != nil {
 				return error
 			}
 
 			// Terraform Plan
-			if error := utils.TerraformApply(name + "/azure-common-infra"); error != nil {
+			if error := util.TerraformApply(name + "/azure-common-infra"); error != nil {
 				return error
 			}
 
@@ -45,12 +44,12 @@ func Deploy(name string) (err error) {
 			log.Info(emoji.Sprintf(":dancers: Deploying Azure-Simple Environment"))
 
 			// Terraform Init
-			if error := utils.TerraformInit(name + "/azure-simple"); error != nil {
+			if error := util.TerraformInit(name + "/azure-simple"); error != nil {
 				return error
 			}
 
 			// Terraform Plan
-			if error := utils.TerraformApply(name + "/azure-simple"); error != nil {
+			if error := util.TerraformApply(name + "/azure-simple"); error != nil {
 				return error
 			}
 
@@ -70,12 +69,12 @@ func Deploy(name string) (err error) {
 			setEnv(name)
 
 			// Terraform Init
-			if error := utils.TerraformInitBackend(name + "/azure-single-keyvault"); error != nil {
+			if error := util.TerraformInitBackend(name + "/azure-single-keyvault"); error != nil {
 				return error
 			}
 
 			// Terraform Plan
-			if error := utils.TerraformApply(name + "/azure-single-keyvault"); error != nil {
+			if error := util.TerraformApply(name + "/azure-single-keyvault"); error != nil {
 				return error
 			}
 
@@ -95,12 +94,12 @@ func Deploy(name string) (err error) {
 			setEnv(name)
 
 			// Terraform Init
-			if error := utils.TerraformInitBackend(name + "/azure-multiple-clusters"); error != nil {
+			if error := util.TerraformInitBackend(name + "/azure-multiple-clusters"); error != nil {
 				return error
 			}
 
 			// Terraform Plan
-			if error := utils.TerraformApply(name + "/azure-multiple-clusters"); error != nil {
+			if error := util.TerraformApply(name + "/azure-multiple-clusters"); error != nil {
 				return error
 			}
 

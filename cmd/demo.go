@@ -8,6 +8,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var servicePrincipal string
+var secret string
+
 // Demo is a function that will automate all the steps to creating an Azure Simple Cluster
 func Demo(servicePrincipal string, secret string) (err error) {
 
@@ -23,7 +26,7 @@ func Demo(servicePrincipal string, secret string) (err error) {
 
 	// Generate .tfvars file
 	log.Info(emoji.Sprintf(":checkered_flag: Initializing Azure Simple Environment"))
-	if error := Init(SIMPLE, "bedrock-demo-cluster"); error != nil {
+	if _, error := Init(SIMPLE, "bedrock-demo-cluster"); error != nil {
 		log.Error(emoji.Sprintf(":no_entry_sign: %s", error))
 		return error
 	}
@@ -43,10 +46,6 @@ func Demo(servicePrincipal string, secret string) (err error) {
 	log.Info(emoji.Sprintf(":raised_hands: Cluster has been successfully created!"))
 	return err
 }
-
-var clusterName string
-var servicePrincipal string
-var secret string
 
 var demoCmd = &cobra.Command{
 	Use:   "demo --sp service-principal-app-id --secret service-principal-password --gitops-ssh-url manifest-repo-url-in-ssh-format",

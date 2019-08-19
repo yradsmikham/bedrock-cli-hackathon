@@ -6,6 +6,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var commonInfraPath string
+var subscription string
+var vmSize string
+var addressSpace string
+var subnetPrefix string
+var keyvaultName string
+var keyvaultRG string
+
 // Initializes the configuration for the given environment
 func azureSingleKeyvault(servicePrincipal string, secret string) (err error) {
 	if tenant == "" && commonInfraPath == "" {
@@ -27,19 +35,11 @@ func azureSingleKeyvault(servicePrincipal string, secret string) (err error) {
 		return err
 	}
 
-	if error := Init(KEYVAULT, clusterName); error != nil {
+	if _, error := Init(KEYVAULT, clusterName); error != nil {
 		return error
 	}
 	return err
 }
-
-var commonInfraPath string
-var subscription string
-var vmSize string
-var addressSpace string
-var subnetPrefix string
-var keyvaultName string
-var keyvaultRG string
 
 var azureSingleKeyvaultCmd = &cobra.Command{
 	Use:   KEYVAULT + " --subscription subscription-id --sp service-principal-app-id --secret service-principal-password --storage-account storage-account-name --access-key storage-account-access-key --container-name storage-container-name --gitops-ssh-url manifest-repo-url-in-ssh-format [--cluster-name name-of-AKS-cluster] [--tenant service-principal-tenant-id] [--common-infra-path path-to-azure-common-infra-environment] [--region region-of-deployment] [--vm-count number-of-nodes-to-deploy-in-cluster] [--vm-size azure-vm-size] [--dns-prefix DNS-prefix] [--poll-interval flux-sync-poll-interval] [--repo-path path-in-repo-to-sync] [--branch repo-branch-to-sync-with] [--keyvault name-of-keyvault] [--keyvault-rg name-of-resource-group-for-keyvault] [--address-space address-space] [--subnet-prefix subnet-prefixes]",
@@ -70,7 +70,7 @@ func init() {
 	azureSingleKeyvaultCmd.Flags().StringVar(&gitopsPath, "repo-path", "", "Path in repo to sync with")
 	azureSingleKeyvaultCmd.Flags().StringVar(&gitopsURLBranch, "branch", "master", "Path in repo to sync with")
 	azureSingleKeyvaultCmd.Flags().StringVar(&addressSpace, "address-space", "10.39.0.0/24", "CIDR for cluster address space")
-	azureSingleKeyvaultCmd.Flags().StringVar(&subnetPrefix, "subnet-prefix", "10.39.0.0/16", "Subnet prefixes")
+	azureSingleKeyvaultCmd.Flags().StringVar(&subnetPrefix, "subnet-prefix", "10.39.0.0/24", "Subnet prefixes")
 	azureSingleKeyvaultCmd.Flags().StringVar(&keyvaultName, "keyvault", "", "Name of Key Vault")
 	azureSingleKeyvaultCmd.Flags().StringVar(&keyvaultRG, "keyvault-rg", "", "Resource group of Key Vault")
 	if error := azureSingleKeyvaultCmd.MarkFlagRequired("sp"); error != nil {
