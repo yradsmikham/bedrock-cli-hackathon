@@ -16,7 +16,7 @@ func TestInit(t *testing.T) {
 
 	for k, v := range env {
 		fmt.Println("Testing Init function for environment", k)
-		if error := Init(v, "test"+k); error != nil {
+		if _, error := Init(v, "test"+k); error != nil {
 			t.Error("There was an error running the Init function.")
 			return
 		}

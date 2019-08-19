@@ -19,7 +19,7 @@ func TestSimulate(t *testing.T) {
 
 	for k, v := range env {
 		fmt.Println("Test simulation for environment", k)
-		errInit := Init(v, "test-"+k)
+		_, errInit := Init(v, "test-"+k)
 		if errInit != nil {
 			t.Error("There was an error creating test environment", k)
 		}
