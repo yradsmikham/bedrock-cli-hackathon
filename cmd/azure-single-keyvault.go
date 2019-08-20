@@ -13,6 +13,7 @@ var addressSpace string
 var subnetPrefix string
 var keyvaultName string
 var keyvaultRG string
+var commonInfraCreation bool
 
 // Initializes the configuration for the given environment
 func azureSingleKeyvault(servicePrincipal string, secret string, commonInfraPath string) (err error) {
