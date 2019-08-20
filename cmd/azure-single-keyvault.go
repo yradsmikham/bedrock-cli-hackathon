@@ -15,23 +15,21 @@ var keyvaultName string
 var keyvaultRG string
 
 // Initializes the configuration for the given environment
-func azureSingleKeyvault(servicePrincipal string, secret string) (err error) {
-	if tenant == "" && commonInfraPath == "" {
-		log.Error(emoji.Sprintf(":confounded: One of common-infra-path and tenant need to be specified"))
-		return err
+func azureSingleKeyvault(servicePrincipal string, secret string, commonInfraPath string) (err error) {
+	if commonInfraPath != "" {
+		log.Info(emoji.Sprintf(":star2: An Azure Common Infra enviroment has been provided"))
+		commonInfraCreation = false
+	} else {
+		commonInfraCreation = true
 	}
-	if storageAccount == "" {
-		log.Error(emoji.Sprintf(":confounded: Please specify a Storage Account Name using '--storage-account' argument"))
+
+	if storageAccount != "" && (accessKey == "" || containerName == "") {
+		log.Error(emoji.Sprintf(":confounded: Please specify the Storage Account Access Key using --access-key and Storage Container using --container-name"))
 		return err
 	}
 
-	if accessKey == "" {
-		log.Error(emoji.Sprintf(":confounded: Please specify the Storage Access Key using '--access-key' argument"))
-		return err
-	}
-
-	if containerName == "" {
-		log.Error(emoji.Sprintf(":confounded: Please specify the Storage Container Name using '--container-name' argument"))
+	if containerName != "" && (accessKey == "" || storageAccount == "") {
+		log.Error(emoji.Sprintf(":confounded: Please specify a Storage Account Name using '--storage-account' and the Storage Account Access Key --access-key"))
 		return err
 	}
 
@@ -42,12 +40,12 @@ func azureSingleKeyvault(servicePrincipal string, secret string) (err error) {
 }
 
 var azureSingleKeyvaultCmd = &cobra.Command{
-	Use:   KEYVAULT + " --subscription subscription-id --sp service-principal-app-id --secret service-principal-password --storage-account storage-account-name --access-key storage-account-access-key --container-name storage-container-name --gitops-ssh-url manifest-repo-url-in-ssh-format [--cluster-name name-of-AKS-cluster] [--tenant service-principal-tenant-id] [--common-infra-path path-to-azure-common-infra-environment] [--region region-of-deployment] [--vm-count number-of-nodes-to-deploy-in-cluster] [--vm-size azure-vm-size] [--dns-prefix DNS-prefix] [--poll-interval flux-sync-poll-interval] [--repo-path path-in-repo-to-sync] [--branch repo-branch-to-sync-with] [--keyvault name-of-keyvault] [--keyvault-rg name-of-resource-group-for-keyvault] [--address-space address-space] [--subnet-prefix subnet-prefixes]",
+	Use:   KEYVAULT + " --subscription subscription-id --sp service-principal-app-id [--common-infra-path path-to-azure-common-infra-environment] [--storage-account storage-account-name] [--access-key storage-account-access-key] [--container-name storage-container-name] [--gitops-ssh-url manifest-repo-url-in-ssh-format] [--cluster-name name-of-AKS-cluster] [--region region-of-deployment] [--vm-count number-of-nodes-to-deploy-in-cluster] [--vm-size azure-vm-size] [--dns-prefix DNS-prefix] [--poll-interval flux-sync-poll-interval] [--repo-path path-in-repo-to-sync] [--branch repo-branch-to-sync-with] [--keyvault name-of-keyvault] [--keyvault-rg name-of-resource-group-for-keyvault] [--address-space address-space] [--subnet-prefix subnet-prefixes]",
 	Short: "Deploys a Bedrock Azure Kubernetes Service (AKS) cluster with an Azure Key Vault",
 	Long:  `Deploys a Bedrock Azure Kubernetes Service (AKS) cluster with an Azure Key Vault. Make sure a successful deployment of ` + COMMON + ` is complete before attempting to deploy this one`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 
-		return azureSingleKeyvault(servicePrincipal, secret)
+		return azureSingleKeyvault(servicePrincipal, secret, commonInfraPath)
 	},
 }
 
@@ -57,7 +55,6 @@ func init() {
 	azureSingleKeyvaultCmd.Flags().StringVar(&secret, "secret", "", "Password for the Service Principal")
 	azureSingleKeyvaultCmd.Flags().StringVar(&gitopsSSHUrl, "gitops-ssh-url", "git@github.com:timfpark/fabrikate-cloud-native-manifests.git", "The git repo that contains the resource manifests that should be deployed in the cluster in ssh format")
 	azureSingleKeyvaultCmd.Flags().StringVar(&commonInfraPath, "common-infra-path", "", "Successful deployment of an Azure Common Infra environment")
-	azureSingleKeyvaultCmd.Flags().StringVar(&tenant, "tenant", "", "Tenant ID for the Service Principal")
 	azureSingleKeyvaultCmd.Flags().StringVar(&storageAccount, "storage-account", "", "Storage Account Name")
 	azureSingleKeyvaultCmd.Flags().StringVar(&accessKey, "access-key", "", "Storage Account Access Key")
 	azureSingleKeyvaultCmd.Flags().StringVar(&containerName, "container-name", "", "Storage Container Name")
@@ -76,10 +73,10 @@ func init() {
 	if error := azureSingleKeyvaultCmd.MarkFlagRequired("sp"); error != nil {
 		return
 	}
-	if error := azureSingleKeyvaultCmd.MarkFlagRequired("secret"); error != nil {
+	if error := azureSingleKeyvaultCmd.MarkFlagRequired("subscription"); error != nil {
 		return
 	}
-	if error := azureSingleKeyvaultCmd.MarkFlagRequired("subscription"); error != nil {
+	if error := azureSingleKeyvaultCmd.MarkFlagRequired("secret"); error != nil {
 		return
 	}
 
