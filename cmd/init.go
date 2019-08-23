@@ -1,6 +1,10 @@
 package cmd
 
+import "C"
 import (
+	"bufio"
+	"fmt"
+	"io"
 	"math/rand"
 	"os"
 	"os/exec"
@@ -10,11 +14,13 @@ import (
 	"github.com/docker/docker/pkg/namesgenerator"
 	"github.com/kyokomi/emoji"
 	log "github.com/sirupsen/logrus"
+	util "github.com/yradsmikham/bedrock-cli/util"
 )
 
 // SSHKey is the public key
 var SSHKey string
 var randomClusterName string
+var subnet string
 
 // Generates random cluster name if "--cluster-name" not specified
 func nameGenerator() (name string) {
@@ -50,6 +56,39 @@ func Init(environment string, clusterName string) (cluster string, err error) {
 		clusterName = randomClusterName
 	}
 
+	// Set Environment Variables
+	if error := GetEnvVariables(clusterName, environment); error != nil {
+		return "", error
+	}
+
+	// Check if resource group exists, if it doesn't create it
+	if resourceGroup == "" {
+		if environment == COMMON {
+			// Create the resource group
+			log.Info(emoji.Sprintf(":construction: Creating new resource group: %s", clusterName+"-kv-rg"))
+			_, err := exec.Command("az", "group", "create", "--name", clusterName+"-kv-rg", "--location", region).CombinedOutput()
+			if err != nil {
+				log.Error(emoji.Sprintf(":no_entry_sign: There was an error with creating the resource group!"))
+				panic(fmt.Errorf("Please try again"))
+			}
+		} else {
+			// Create the resource group
+			log.Info(emoji.Sprintf(":construction: Creating new resource group: %s", clusterName+"-rg"))
+			_, err := exec.Command("az", "group", "create", "--name", clusterName+"-rg", "--location", region).CombinedOutput()
+			if err != nil {
+				log.Error(emoji.Sprintf(":no_entry_sign: There was an error with creating the resource group!"))
+				panic(fmt.Errorf("Please try again"))
+			}
+		}
+	} else {
+		log.Info(emoji.Sprintf(":mag_right: Verifying Resource Group..."))
+		output, _ := exec.Command("az", "group", "show", "--name", resourceGroup).CombinedOutput()
+		if strings.Contains(string(output), "could not be found") {
+			log.Error(emoji.Sprintf(":question: The resource group specified does not exist!"))
+			panic(fmt.Errorf("Please specify an existing resource group, or do not use the '--resource-group' to auto-generate one"))
+		}
+	}
+
 	// Copy Terraform Template
 	environmentPath := "bedrock/cluster/environments/" + clusterName
 	if error := os.MkdirAll(environmentPath, os.ModePerm); error != nil {
@@ -75,42 +114,220 @@ func Init(environment string, clusterName string) (cluster string, err error) {
 	return clusterName, err
 }
 
-// Get environment variables
-func getEnvVariables(clusterName string) (err error) {
-	if storageAccount == "" {
-		storageAccount = os.Getenv("AZURE_STORAGE_ACCOUNT")
-	}
-	if accessKey == "" {
-		accessKey = os.Getenv("AZURE_STORAGE_KEY")
-	}
-	if containerName == "" {
-		containerName = os.Getenv("AZURE_CONTAINER")
-	}
-	if subscription == "" {
+// GetEnvVariables function retrieves values from environment variables or sets them
+func GetEnvVariables(clusterName string, envType string) (err error) {
+	revisedClusterName := strings.Replace(clusterName, "-", "", -1)
+
+	_, subscriptionExists := os.LookupEnv("ARM_SUBSCRIPTION_ID")
+	if subscriptionExists {
+		log.Info(emoji.Sprintf(":globe_with_meridians: A Subscription ID was found in the environment variables."))
 		subscription = os.Getenv("ARM_SUBSCRIPTION_ID")
+	} else {
+		if subscription == "" {
+			log.Error(emoji.Sprintf(":confounded: A Subscription environment variable was not found. Please specify the ARM_SUBSCRIPTION_ID environment variable, or use the --subscription argument when creating the environment."))
+			panic(fmt.Errorf("A Subscription ID needs to be specified"))
+		} else {
+			os.Setenv("ARM_SUBSCRIPTION_ID", subscription)
+		}
 	}
-	if servicePrincipal == "" {
+	_, spExists := os.LookupEnv("ARM_CLIENT_ID")
+	if spExists {
+		log.Info(emoji.Sprintf(":globe_with_meridians: A Service Principal was found in the environment variables."))
 		servicePrincipal = os.Getenv("ARM_CLIENT_ID")
+	} else {
+		if servicePrincipal == "" {
+			log.Error(emoji.Sprintf(":confounded: A Service Principal environment variable was not found. Please specify the ARM_CLIENT_ID environment variable, or use the --sp argument when creating the environment."))
+			panic(fmt.Errorf("A Service Principal needs to be specified"))
+		} else {
+			os.Setenv("ARM_CLIENT_ID", servicePrincipal)
+		}
 	}
-	if tenant == "" {
-		tenant = os.Getenv("ARM_TENANT_ID")
-	}
-	if secret == "" {
+	_, secretExists := os.LookupEnv("ARM_CLIENT_SECRET")
+	if secretExists {
+		log.Info(emoji.Sprintf(":globe_with_meridians: A Service Principal Secret was found in the environment variables."))
 		secret = os.Getenv("ARM_CLIENT_SECRET")
+	} else {
+		if secret == "" {
+			log.Error(emoji.Sprintf(":confounded: A Service Principal Secret environment variable was not found. Please specify the ARM_CLIENT_SECRET environment variable, or use the --secret argument when creating the environment."))
+			panic(fmt.Errorf("A Service Principal Password needs to be specified"))
+		} else {
+			os.Setenv("ARM_CLIENT_SECRET", secret)
+		}
+	}
+	_, tenantExists := os.LookupEnv("ARM_TENANT_ID")
+	if tenantExists {
+		log.Info(emoji.Sprintf(":globe_with_meridians: A Service Principal Tenant ID was found in the environment variables."))
+		tenant = os.Getenv("ARM_TENANT_ID")
+	} else {
+		if tenant == "" {
+			log.Error(emoji.Sprintf(":confounded: A Service Principal Tenant ID environment variable was not found. Please specify the ARM_TENANT_ID environment variable, or use the --tenant argument when creating the environment."))
+			panic(fmt.Errorf("A Service Principal Tenant ID needs to be specified"))
+		} else {
+			os.Setenv("ARM_TENANT_ID", tenant)
+		}
+	}
+	if envType == COMMON || envType == KEYVAULT || envType == MULTIPLE {
+		if storageAccount == "" {
+			_, exists := os.LookupEnv("AZURE_STORAGE_ACCOUNT")
+
+			if exists {
+				storageAccount = os.Getenv("AZURE_STORAGE_ACCOUNT")
+			} else {
+				if error := util.CreateStorageAccount(revisedClusterName, clusterName+"-storage-rg", "centralus"); error != nil {
+					return error
+				}
+				storageAccount = revisedClusterName
+			}
+		}
+		if accessKey == "" {
+			_, exists := os.LookupEnv("AZURE_STORAGE_KEY")
+
+			if exists {
+				accessKey = os.Getenv("AZURE_STORAGE_KEY")
+			} else {
+				key, error := util.GetAccessKeys(revisedClusterName, clusterName+"-storage-rg")
+				if error != nil {
+					return error
+				}
+				accessKey = key
+			}
+		}
+		if containerName == "" {
+			_, exists := os.LookupEnv("AZURE_CONTAINER")
+
+			if exists {
+				containerName = os.Getenv("AZURE_CONTAINER")
+			} else {
+				if error := util.CreateStorageContainer(clusterName+"-container", revisedClusterName, accessKey); error != nil {
+					return error
+				}
+				containerName = clusterName + "-container"
+			}
+		}
+		if keyvaultName == "" {
+			keyvaultName = clusterName + "-kv"
+		}
+		if keyvaultRG == "" {
+			keyvaultRG = clusterName + "-kv-rg"
+		}
 	}
 	if vnet == "" {
 		vnet = clusterName + "-vnet"
 	}
+	if subnet == "" {
+		subnet = clusterName + "-subnet"
+	}
 	if dnsPrefix == "" {
 		dnsPrefix = clusterName
 	}
-	if keyvaultName == "" {
-		keyvaultName = clusterName + "-kv"
-	}
-	if keyvaultRG == "" {
-		keyvaultRG = clusterName + "-kv-rg"
-	}
 	return err
+}
+
+// ReadTfvarsFile function will parse .tfvars file
+func ReadTfvarsFile(filename string) (config map[string]string, err error) {
+	tfvarsConfig := make(map[string]string)
+
+	if len(filename) == 0 {
+		return nil, err
+	}
+	file, err := os.Open(filename)
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if equal := strings.Index(line, "="); equal >= 0 {
+			if key := strings.TrimSpace(line[:equal]); len(key) > 0 {
+				value := ""
+				if len(line) > equal {
+					value = strings.TrimSpace(line[equal+1:])
+				}
+				tfvarsConfig[key] = value
+			}
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+
+	return tfvarsConfig, err
+}
+
+// CopyFile is a function that copies a file to another destination
+func CopyFile(source string, dest string) (err error) {
+	sourcefile, err := os.Open(source)
+	if err != nil {
+		return err
+	}
+
+	defer sourcefile.Close()
+
+	destfile, err := os.Create(dest)
+	if err != nil {
+		return err
+	}
+
+	defer destfile.Close()
+
+	_, err = io.Copy(destfile, sourcefile)
+	if err == nil {
+		sourceinfo, err := os.Stat(source)
+		if err != nil {
+			if err = os.Chmod(dest, sourceinfo.Mode()); err != nil {
+				return err
+			}
+		}
+
+	}
+
+	return
+}
+
+// CopyDir is a function that copies an entire directory to another directory
+func CopyDir(source string, dest string) (err error) {
+
+	// Get properties of source dir
+	sourceinfo, err := os.Stat(source)
+	if err != nil {
+		return err
+	}
+
+	// Create destination dir
+	err = os.MkdirAll(dest, sourceinfo.Mode())
+	if err != nil {
+		return err
+	}
+
+	directory, _ := os.Open(source)
+	objects, err := directory.Readdir(-1)
+
+	for _, obj := range objects {
+
+		sourcefilepointer := source + "/" + obj.Name()
+		destinationfilepointer := dest + "/" + obj.Name()
+
+		if obj.IsDir() {
+			// Create sub-directories - recursively
+			err = CopyDir(sourcefilepointer, destinationfilepointer)
+			if err != nil {
+				fmt.Println(err)
+			}
+		} else {
+			// Perform copy
+			err = CopyFile(sourcefilepointer, destinationfilepointer)
+			if err != nil {
+				fmt.Println(err)
+			}
+		}
+
+	}
+	return
 }
 
 // Generate bedrock-config.tfvars (and bedrock-config.toml) and bedrock-backend-config.tfvars (if appropriate)
@@ -118,26 +335,31 @@ func generateTfvars(envPath string, envType string, clusterName string, sshKey s
 
 	configMap := make(map[string]string)
 	backendConfigMap := make(map[string]string)
+	spConfigMap := make(map[string]string)
 
 	backendTfvarsFile, _ := os.Create(envPath + "/bedrock-backend-config.tfvars")
 	tfvarsFile, _ := os.Create(envPath + "/bedrock-config.tfvars")
-	configTomlFile, _ := os.Create(envPath + "/bedrock-config.toml")
+	spTomlFile, _ := os.Create(envPath + "/bedrock-sp-config.toml")
 	log.Info(emoji.Sprintf(":page_with_curl: Create Bedrock config file " + envPath + "/bedrock-config.tfvars"))
 
 	// Supported environments
 	if envType == SIMPLE {
 		azureSimpleTemplate(configMap, clusterName, sshKey)
+		servicePrincipalTemplate(spConfigMap)
 	}
 	if envType == COMMON {
 		backendTemplate(backendConfigMap, clusterName, COMMON)
 		azureCommonInfraTemplate(configMap, clusterName, sshKey)
+		servicePrincipalTemplate(spConfigMap)
 	}
 	if envType == KEYVAULT {
 		backendTemplate(backendConfigMap, clusterName, KEYVAULT)
 		azureSingleKVTemplate(configMap, clusterName, sshKey)
+		servicePrincipalTemplate(spConfigMap)
 	}
 	if envType == MULTIPLE {
 		azureMultipleTemplate(configMap, clusterName, sshKey)
+		servicePrincipalTemplate(spConfigMap)
 	}
 
 	// Iterate through backend config
@@ -157,26 +379,33 @@ func generateTfvars(envPath string, envType string, clusterName string, sshKey s
 	tfvarsFile.Close()
 
 	// Generate the toml file will be used to extract environment variables via "viper"
-	for setting, value := range configMap {
-		if _, err := configTomlFile.WriteString(setting + " = " + value + "\n"); err != nil {
+	for setting, value := range spConfigMap {
+		if _, err := spTomlFile.WriteString(setting + " = " + value + "\n"); err != nil {
 			return err
 		}
 	}
-	configTomlFile.Close()
+	spTomlFile.Close()
 
 	return err
 }
 
+func servicePrincipalTemplate(config map[string]string) {
+	config["subscription"] = "\"" + subscription + "\""
+	config["service_principal"] = "\"" + servicePrincipal + "\""
+	config["secret"] = "\"" + secret + "\""
+	config["tenant_id"] = "\"" + tenant + "\""
+}
+
 func backendTemplate(config map[string]string, clusterName string, env string) {
+	accessKey = strings.TrimSuffix(accessKey, "\n")
 	config["storage_account_name"] = "\"" + storageAccount + "\""
 	config["access_key"] = "\"" + accessKey + "\""
 	config["container_name"] = "\"" + containerName + "\""
-	config["key"] = "\"" + "tfstate-" + env + clusterName + "\""
+	config["key"] = "\"" + "tfstate-" + env + "-" + clusterName + "\""
 }
 
 func azureSimpleTemplate(config map[string]string, clusterName string, sshKey string) {
 	config["resource_group_name"] = "\"" + clusterName + "-rg\""
-	config["resource_group_location"] = "\"" + region + "\""
 	config["cluster_name"] = "\"" + clusterName + "\""
 	config["dns_prefix"] = "\"" + dnsPrefix + "\""
 	config["service_principal_id"] = "\"" + servicePrincipal + "\""
@@ -193,21 +422,16 @@ func azureSimpleTemplate(config map[string]string, clusterName string, sshKey st
 
 func azureCommonInfraTemplate(config map[string]string, clusterName string, sshKey string) {
 	config["global_resource_group_name"] = "\"" + keyvaultRG + "\""
-	config["global_resource_group_location"] = "\"" + region + "\""
 	config["keyvault_name"] = "\"" + keyvaultName + "\""
 	config["service_principal_id"] = "\"" + servicePrincipal + "\""
-	config["tenant_id"] = "\"" + tenant + "\""
 	config["address_space"] = "\"" + addressSpace + "\""
 	config["subnet_prefix"] = "\"" + subnetPrefix + "\""
-	config["subnet_name"] = "\"" + clusterName + "-subnet\""
-	config["vnet_name"] = "\"" + clusterName + "-vnet\""
-	config["subscription"] = "\"" + subscription + "\""
-	config["secret"] = "\"" + secret + "\""
+	config["subnet_name"] = "\"" + subnet + "\""
+	config["vnet_name"] = "\"" + vnet + "\""
 }
 
 func azureSingleKVTemplate(config map[string]string, clusterName string, sshKey string) {
 	config["resource_group_name"] = "\"" + clusterName + "-rg\""
-	config["resource_group_location"] = "\"" + region + "\""
 	config["cluster_name"] = "\"" + clusterName + "\""
 	config["agent_vm_size"] = "\"" + vmSize + "\""
 	config["service_principal_id"] = "\"" + servicePrincipal + "\""
@@ -217,7 +441,8 @@ func azureSingleKVTemplate(config map[string]string, clusterName string, sshKey 
 	config["gitops_ssh_key"] = "\"" + "deploy-key" + "\""
 	config["keyvault_resource_group"] = "\"" + keyvaultRG + "\""
 	config["keyvault_name"] = "\"" + keyvaultName + "\""
-	config["vnet_subnet_id"] = "\"/subscriptions/" + subscription + "/resourceGroups/" + keyvaultRG + "/providers/Microsoft.Network/virtualNetworks/" + clusterName + "-vnet/subnets/" + clusterName + "-subnet" + "\""
+	config["subnet_name"] = "\"" + subnet + "\""
+	config["vnet_name"] = "\"" + vnet + "\""
 	config["agent_vm_count"] = "\"" + vmCount + "\""
 	config["gitops_poll_interval"] = "\"" + gitopsPollInterval + "\""
 	config["gitops_url_branch"] = "\"" + gitopsURLBranch + "\""
@@ -263,7 +488,7 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 
 	if environment == SIMPLE {
 
-		if error := getEnvVariables(clusterName); error != nil {
+		if error := GetEnvVariables(clusterName, SIMPLE); error != nil {
 			return error
 		}
 		if error := generateTfvars(fullEnvironmentPath, SIMPLE, clusterName, sshKey); error != nil {
@@ -278,7 +503,7 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 
 	if environment == COMMON {
 
-		if error := getEnvVariables(clusterName); error != nil {
+		if error := GetEnvVariables(clusterName, COMMON); error != nil {
 			return error
 		}
 		if error := generateTfvars(fullEnvironmentPath, COMMON, clusterName, sshKey); error != nil {
@@ -296,14 +521,35 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 
 		// When common infra is a dependency but does not exist, create one
 		if commonInfraPath == "" {
-			log.Info(emoji.Sprintf(":two_men_holding_hands: Common Infra path is not set, creating common infra with tenant id %s", tenant))
+			log.Info(emoji.Sprintf(":two_men_holding_hands: Common Infra path is not set, creating one now..."))
 			if _, error := Init(COMMON, clusterName); error != nil {
 				return error
 			}
+		} else {
+			log.Info(emoji.Sprintf(":two_men_holding_hands: Contents of Azure Common Infra are being copied..."))
+			if error := CopyDir(commonInfraPath, environmentPath); error != nil {
+				return error
+			}
+			chmodCmd := exec.Command("chmod", "-R", "777", ".terraform")
+			chmodCmd.Dir = string(environmentPath) + "/" + COMMON
+			if output, err := chmodCmd.CombinedOutput(); err != nil {
+				log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
+				return err
+			}
+			configOutput, error := ReadTfvarsFile(environmentPath + "/" + COMMON + "/" + "bedrock-config.tfvars")
+			if error != nil {
+				log.Error(emoji.Sprintf(":no_entry_sign: %s", err))
+				return err
+			}
+			subnet = configOutput["subnet_name"][1 : len(configOutput["subnet_name"])-1]
+			vnet = configOutput["vnet_name"][1 : len(configOutput["vnet_name"])-1]
+			keyvaultName = configOutput["keyvault_name"][1 : len(configOutput["keyvault_name"])-1]
+			keyvaultRG = configOutput["global_resource_group_name"][1 : len(configOutput["global_resource_group_name"])-1]
 		}
+
 		log.Info(emoji.Sprintf(":family: Common Infra path is set to %s", commonInfraPath))
 
-		if error := getEnvVariables(clusterName); error != nil {
+		if error := GetEnvVariables(clusterName, KEYVAULT); error != nil {
 			return error
 		}
 		if error := generateTfvars(fullEnvironmentPath, KEYVAULT, clusterName, sshKey); error != nil {
@@ -325,9 +571,32 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 				return error
 			}
 		}
+
+		if commonInfraPath != "" {
+			log.Info(emoji.Sprintf(":two_men_holding_hands: Contents of Azure Common Infra are being copied..."))
+			if error := CopyDir(commonInfraPath, environmentPath); error != nil {
+				return error
+			}
+			chmodCmd := exec.Command("chmod", "-R", "777", ".terraform")
+			chmodCmd.Dir = string(environmentPath) + "/" + COMMON
+			if output, err := chmodCmd.CombinedOutput(); err != nil {
+				log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
+				return err
+			}
+			configOutput, error := ReadTfvarsFile(environmentPath + "/" + COMMON + "/" + "bedrock-config.tfvars")
+			if error != nil {
+				log.Error(emoji.Sprintf(":no_entry_sign: %s", err))
+				return err
+			}
+			subnet = configOutput["subnet_name"][1 : len(configOutput["subnet_name"])-1]
+			vnet = configOutput["vnet_name"][1 : len(configOutput["vnet_name"])-1]
+			keyvaultName = configOutput["keyvault_name"][1 : len(configOutput["keyvault_name"])-1]
+			keyvaultRG = configOutput["global_resource_group_name"][1 : len(configOutput["global_resource_group_name"])-1]
+		}
+
 		log.Info(emoji.Sprintf(":family: Common Infra path is set to %s", commonInfraPath))
 
-		if error := getEnvVariables(clusterName); error != nil {
+		if error := GetEnvVariables(clusterName, MULTIPLE); error != nil {
 			return error
 		}
 		if error := generateTfvars(fullEnvironmentPath, MULTIPLE, clusterName, sshKey); error != nil {

@@ -41,7 +41,7 @@ func azureSingleKeyvault(servicePrincipal string, secret string, commonInfraPath
 }
 
 var azureSingleKeyvaultCmd = &cobra.Command{
-	Use:   KEYVAULT + " --subscription subscription-id --sp service-principal-app-id [--common-infra-path path-to-azure-common-infra-environment] [--storage-account storage-account-name] [--access-key storage-account-access-key] [--container-name storage-container-name] [--gitops-ssh-url manifest-repo-url-in-ssh-format] [--cluster-name name-of-AKS-cluster] [--region region-of-deployment] [--vm-count number-of-nodes-to-deploy-in-cluster] [--vm-size azure-vm-size] [--dns-prefix DNS-prefix] [--poll-interval flux-sync-poll-interval] [--repo-path path-in-repo-to-sync] [--branch repo-branch-to-sync-with] [--keyvault name-of-keyvault] [--keyvault-rg name-of-resource-group-for-keyvault] [--address-space address-space] [--subnet-prefix subnet-prefixes]",
+	Use:   KEYVAULT + " --gitops-ssh-url manifest-repo-url-in-ssh-format [--subscription subscription-id] [--sp service-principal-app-id] [--secret service-principal-password] [--tenant serice-principal-tenant-id] [--common-infra-path path-to-azure-common-infra-environment] [--storage-account storage-account-name] [--access-key storage-account-access-key] [--container-name storage-container-name] [--cluster-name name-of-AKS-cluster] [--region region-of-deployment] [--vm-count number-of-nodes-to-deploy-in-cluster] [--vm-size azure-vm-size] [--dns-prefix DNS-prefix] [--poll-interval flux-sync-poll-interval] [--repo-path path-in-repo-to-sync] [--branch repo-branch-to-sync-with] [--keyvault name-of-keyvault] [--keyvault-rg name-of-resource-group-for-keyvault] [--address-space address-space] [--subnet-prefix subnet-prefixes]",
 	Short: "Deploys a Bedrock Azure Kubernetes Service (AKS) cluster with an Azure Key Vault",
 	Long:  `Deploys a Bedrock Azure Kubernetes Service (AKS) cluster with an Azure Key Vault. Make sure a successful deployment of ` + COMMON + ` is complete before attempting to deploy this one`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -51,9 +51,11 @@ var azureSingleKeyvaultCmd = &cobra.Command{
 }
 
 func init() {
-	azureSingleKeyvaultCmd.Flags().StringVar(&servicePrincipal, "sp", "", "Service Principal App Id")
-	azureSingleKeyvaultCmd.Flags().StringVar(&subscription, "subscription", "", "Subscription Id")
+	azureSingleKeyvaultCmd.Flags().StringVar(&resourceGroup, "resource-group", "", "An existing Azure Resource Group")
+	azureSingleKeyvaultCmd.Flags().StringVar(&servicePrincipal, "sp", "", "Service Principal App ID")
+	azureSingleKeyvaultCmd.Flags().StringVar(&subscription, "subscription", "", "Subscription ID")
 	azureSingleKeyvaultCmd.Flags().StringVar(&secret, "secret", "", "Password for the Service Principal")
+	azureSingleKeyvaultCmd.Flags().StringVar(&tenant, "tenant", "", "Tenant ID for the Service Principal")
 	azureSingleKeyvaultCmd.Flags().StringVar(&gitopsSSHUrl, "gitops-ssh-url", "git@github.com:timfpark/fabrikate-cloud-native-manifests.git", "The git repo that contains the resource manifests that should be deployed in the cluster in ssh format")
 	azureSingleKeyvaultCmd.Flags().StringVar(&commonInfraPath, "common-infra-path", "", "Successful deployment of an Azure Common Infra environment")
 	azureSingleKeyvaultCmd.Flags().StringVar(&storageAccount, "storage-account", "", "Storage Account Name")
@@ -71,15 +73,8 @@ func init() {
 	azureSingleKeyvaultCmd.Flags().StringVar(&subnetPrefix, "subnet-prefix", "10.39.0.0/24", "Subnet prefixes")
 	azureSingleKeyvaultCmd.Flags().StringVar(&keyvaultName, "keyvault", "", "Name of Key Vault")
 	azureSingleKeyvaultCmd.Flags().StringVar(&keyvaultRG, "keyvault-rg", "", "Resource group of Key Vault")
-	if error := azureSingleKeyvaultCmd.MarkFlagRequired("sp"); error != nil {
+	if error := azureSingleKeyvaultCmd.MarkFlagRequired("gitops-ssh-url"); error != nil {
 		return
 	}
-	if error := azureSingleKeyvaultCmd.MarkFlagRequired("subscription"); error != nil {
-		return
-	}
-	if error := azureSingleKeyvaultCmd.MarkFlagRequired("secret"); error != nil {
-		return
-	}
-
 	rootCmd.AddCommand(azureSingleKeyvaultCmd)
 }

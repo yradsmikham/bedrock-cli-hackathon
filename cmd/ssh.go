@@ -15,7 +15,7 @@ func SSH(path string, name string) (key string, err error) {
 	log.Info(emoji.Sprintf(":lock_with_ink_pen: Creating new SSH with name " + name))
 
 	keyPath := path + "/" + name
-	log.Info(emoji.Sprintf(":door: Current wd is %s", path))
+	//log.Info(emoji.Sprintf(":door: Current wd is %s", path))
 
 	if _, err := os.Stat(keyPath); err == nil {
 		log.Info(emoji.Sprintf(":palm_tree: Path to %s exists, removing...", keyPath))
@@ -24,7 +24,6 @@ func SSH(path string, name string) (key string, err error) {
 	}
 
 	// Create SSH Keys
-	log.Info(emoji.Sprintf(":closed_lock_with_key: Creating New SSH Keys"))
 	if output, err := exec.Command("ssh-keygen", "-t", "rsa", "-b", "4096", "-f", keyPath, "-P", "").CombinedOutput(); err != nil {
 		log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
 		return "", err

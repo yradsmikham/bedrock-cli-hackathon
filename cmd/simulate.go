@@ -12,22 +12,20 @@ import (
 	util "github.com/yradsmikham/bedrock-cli/util"
 )
 
-func setEnv(name string) {
+func setEnv(name string, env string) {
 	// must retreive environment variables from bedrock-config and set them as environment variables
-	viper.SetConfigName("bedrock-config")             // name of config file (without extension)
-	viper.AddConfigPath(name + "/azure-common-infra") // path to look for the config file in
-	viper.AddConfigPath(name + "/azure-multiple-clusters")
+	viper.SetConfigName("bedrock-sp-config") // name of config file (without extension)
+	viper.AddConfigPath(name + "/" + env)    // path to look for the config file in
+
 	errr := viper.ReadInConfig() // Find and read the config file
 	if errr != nil {             // Handle errors reading the config file
 		panic(fmt.Errorf("Fatal error config file: %s", errr))
 	}
-
 	log.Info(emoji.Sprintf(":arrows_clockwise: Setting Environments Variables..."))
 	os.Setenv("ARM_SUBSCRIPTION_ID", viper.GetString("subscription"))
-	os.Setenv("ARM_CLIENT_ID", viper.GetString("service_principal_id"))
+	os.Setenv("ARM_CLIENT_ID", viper.GetString("service_principal"))
 	os.Setenv("ARM_CLIENT_SECRET", viper.GetString("secret"))
 	os.Setenv("ARM_TENANT_ID", viper.GetString("tenant_id"))
-
 }
 
 // Simulate or dry-run a bedrock environment creation (azure simple, multi-cluster, keyvault, etc.)
@@ -40,10 +38,10 @@ func Simulate(name string) (err error) {
 	}
 	for _, f := range files {
 		log.Info(emoji.Sprintf(":eyes: Searching for Azure-Common-Infra environment..."))
-		if f.Name() == "azure-common-infra" {
+		if f.Name() == COMMON {
 			log.Info(emoji.Sprintf(":round_pushpin: Azure-Common-Infra environment found!"))
 			log.Info(emoji.Sprintf(":dancers: Simulating Azure-Common-Infra Environment"))
-			setEnv(name)
+			setEnv(name, COMMON)
 
 			// Terraform Init
 			if error := util.TerraformInitBackend(name + "/azure-common-infra"); error != nil {
@@ -61,8 +59,9 @@ func Simulate(name string) (err error) {
 
 	// Run Terraform Init on everything else (e.g. azure-single-keyvault, azure-multi-cluster)
 	for _, f := range files {
-		if f.Name() == "azure-simple" {
+		if f.Name() == SIMPLE {
 			log.Info(emoji.Sprintf(":dancers: Simulating Azure-Simple Environment"))
+			setEnv(name, SIMPLE)
 
 			// Terraform Init
 			if error := util.TerraformInit(name + "/azure-simple"); error != nil {
@@ -76,10 +75,15 @@ func Simulate(name string) (err error) {
 
 			break
 		}
-		if f.Name() == "azure-single-keyvault" {
-			log.Info(emoji.Sprintf(":dancers: Simulating Azure-Single-Keyvault Environment"))
-			setEnv(name)
+		if f.Name() == KEYVAULT {
+			log.Info(emoji.Sprintf(":rocket: Deploying Azure Common Infra environment"))
 
+			// Need to deploy azure-common-infra before you can run `terraform init` or `terraform apply`
+			if error := util.TerraformApply(name + "/azure-common-infra"); error != nil {
+				return error
+			}
+			log.Info(emoji.Sprintf(":dancers: Simulating Azure-Single-Keyvault Environment"))
+			setEnv(name, KEYVAULT)
 			// Terraform Init
 			if error := util.TerraformInitBackend(name + "/azure-single-keyvault"); error != nil {
 				return error
@@ -92,9 +96,9 @@ func Simulate(name string) (err error) {
 
 			break
 		}
-		if f.Name() == "azure-multiple-clusters" {
+		if f.Name() == MULTIPLE {
 			log.Info(emoji.Sprintf(":dancers: Simulating Azure-Multiple-Clusters Environment"))
-			setEnv(name)
+			setEnv(name, MULTIPLE)
 
 			// Terraform Init
 			if error := util.TerraformInit(name + "/azure-multiple-clusters"); error != nil {

@@ -20,9 +20,9 @@ func Deploy(name string) (err error) {
 	}
 	for _, f := range files {
 		log.Info(emoji.Sprintf(":eyes: Searching for azure-common-infra environment..."))
-		if f.Name() == "azure-common-infra" {
+		if f.Name() == COMMON {
 			log.Info(emoji.Sprintf(":round_pushpin: Azure-common-infra environment found!"))
-			setEnv(name)
+			setEnv(name, COMMON)
 
 			// Terraform Init
 			if error := util.TerraformInitBackend(name + "/azure-common-infra"); error != nil {
@@ -40,9 +40,9 @@ func Deploy(name string) (err error) {
 
 	// Run Terraform Init on everything else (e.g. azure-single-keyvault, azure-multi-cluster)
 	for _, f := range files {
-		if f.Name() == "azure-simple" {
+		if f.Name() == SIMPLE {
 			log.Info(emoji.Sprintf(":dancers: Deploying Azure-Simple Environment"))
-
+			setEnv(name, SIMPLE)
 			// Terraform Init
 			if error := util.TerraformInit(name + "/azure-simple"); error != nil {
 				return error
@@ -64,9 +64,9 @@ func Deploy(name string) (err error) {
 
 			break
 		}
-		if f.Name() == "azure-single-keyvault" {
+		if f.Name() == KEYVAULT {
 			log.Info(emoji.Sprintf(":dancers: Deploying Azure-Single-Keyvault Environment"))
-			setEnv(name)
+			setEnv(name, KEYVAULT)
 
 			// Terraform Init
 			if error := util.TerraformInitBackend(name + "/azure-single-keyvault"); error != nil {
@@ -89,9 +89,9 @@ func Deploy(name string) (err error) {
 
 			break
 		}
-		if f.Name() == "azure-multiple-clusters" {
+		if f.Name() == MULTIPLE {
 			log.Info(emoji.Sprintf(":dancers: Deploying Azure-Multiple-Clusters Environment"))
-			setEnv(name)
+			setEnv(name, MULTIPLE)
 
 			// Terraform Init
 			if error := util.TerraformInitBackend(name + "/azure-multiple-clusters"); error != nil {
