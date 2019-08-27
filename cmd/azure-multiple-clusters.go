@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"github.com/kyokomi/emoji"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -12,18 +10,16 @@ var gitopsPathCentral string
 var gitopsURLBranchWest string
 var gitopsURLBranchEast string
 var gitopsURLBranchCentral string
+var resourceGroupWest string
+var resourceGroupEast string
+var resourceGroupCentral string
+var resourceGroupTm string
+var regionWest string
+var regionCentral string
+var regionEast string
 
 // Initializes the configuration for the given environment
 func azureMultiCluster(servicePrincipal string, secret string) (err error) {
-	if tenant == "" {
-		log.Error(emoji.Sprintf(":confounded: Please specify the Tenant ID for your Service Principal using '--tenant' argument"))
-		return err
-	}
-	if subscription == "" {
-		log.Error(emoji.Sprintf(":confounded: Please specify the Subcription ID using '--subscription' argument"))
-		return err
-	}
-
 	if _, error := Init(MULTIPLE, clusterName); error != nil {
 		return error
 	}
@@ -41,14 +37,18 @@ var azureMultiClusterCmd = &cobra.Command{
 }
 
 func init() {
-	azureMultiClusterCmd.Flags().StringVar(&resourceGroup, "resource-group", "", "An existing Azure Resource Group")
+	azureMultiClusterCmd.Flags().StringVar(&resourceGroupWest, "resource-group-west", "", "An existing Azure Resource Group for west cluster")
+	azureMultiClusterCmd.Flags().StringVar(&resourceGroupEast, "resource-group-east", "", "An existing Azure Resource Group for east cluster")
+	azureMultiClusterCmd.Flags().StringVar(&resourceGroupCentral, "resource-group-central", "", "An existing Azure Resource Group for central cluster")
 	azureMultiClusterCmd.Flags().StringVar(&servicePrincipal, "sp", "", "Service Principal App Id")
 	azureMultiClusterCmd.Flags().StringVar(&secret, "secret", "", "Password for the Service Principal")
 	azureMultiClusterCmd.Flags().StringVar(&gitopsSSHUrl, "gitops-ssh-url", "git@github.com:timfpark/fabrikate-cloud-native-manifests.git", "The git repo that contains the resource manifests that should be deployed in the cluster in ssh format.")
 	azureMultiClusterCmd.Flags().StringVar(&tenant, "tenant", "", "Tenant ID for the Service Principal")
 	azureMultiClusterCmd.Flags().StringVar(&subscription, "subscription", "", "Subscription ID")
 	azureMultiClusterCmd.Flags().StringVar(&clusterName, "cluster-name", "", "Name of AKS Cluster")
-	azureMultiClusterCmd.Flags().StringVar(&region, "region", "westus2", "Region of deployment")
+	azureMultiClusterCmd.Flags().StringVar(&regionWest, "region-west", "westus2", "Region of deployment")
+	azureMultiClusterCmd.Flags().StringVar(&regionCentral, "region-central", "centralus", "Region of deployment")
+	azureMultiClusterCmd.Flags().StringVar(&regionEast, "region-east", "eastus", "Region of deployment")
 	azureMultiClusterCmd.Flags().StringVar(&vmCount, "vm-count", "3", "Number of nodes to deploy per cluster")
 	azureMultiClusterCmd.Flags().StringVar(&vmSize, "vm-size", "Standard_D4s_v3", "Azure VM size")
 	azureMultiClusterCmd.Flags().StringVar(&dnsPrefix, "dns-prefix", "", "DNS Prefix")

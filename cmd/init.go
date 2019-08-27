@@ -57,7 +57,7 @@ func Init(environment string, clusterName string) (cluster string, err error) {
 	}
 
 	// Set Environment Variables
-	if error := GetEnvVariables(clusterName, environment); error != nil {
+	if error := VerifyEnvVariables(clusterName, environment); error != nil {
 		return "", error
 	}
 
@@ -70,6 +70,36 @@ func Init(environment string, clusterName string) (cluster string, err error) {
 			if err != nil {
 				log.Error(emoji.Sprintf(":no_entry_sign: There was an error with creating the resource group!"))
 				panic(fmt.Errorf("Please try again"))
+			}
+		} else if environment == MULTIPLE {
+			if resourceGroupWest == "" || resourceGroupCentral == "" || resourceGroupEast == "" {
+				// Create resource groups for every region
+				log.Info(emoji.Sprintf(":construction: Creating new resource group: %s", clusterName+"-west-rg, "+clusterName+"-central-rg, "+clusterName+"-east-rg"))
+				_, westRgCreationErr := exec.Command("az", "group", "create", "--name", clusterName+"-west-rg", "--location", regionWest).CombinedOutput()
+				if westRgCreationErr != nil {
+					log.Error(emoji.Sprintf(":no_entry_sign: There was an error with creating the resource group!"))
+					panic(fmt.Errorf("Please try again"))
+				}
+				resourceGroupWest = clusterName + "-west-rg"
+				_, centralRgCreationErr := exec.Command("az", "group", "create", "--name", clusterName+"-central-rg", "--location", regionCentral).CombinedOutput()
+				if centralRgCreationErr != nil {
+					log.Error(emoji.Sprintf(":no_entry_sign: There was an error with creating the resource group!"))
+					panic(fmt.Errorf("Please try again"))
+				}
+				resourceGroupEast = clusterName + "-east-rg"
+				_, eastRgCreationErr := exec.Command("az", "group", "create", "--name", clusterName+"-east-rg", "--location", regionEast).CombinedOutput()
+				if eastRgCreationErr != nil {
+					log.Error(emoji.Sprintf(":no_entry_sign: There was an error with creating the resource group!"))
+					panic(fmt.Errorf("Please try again"))
+				}
+				resourceGroupCentral = clusterName + "-central-rg"
+				_, trafficManagerErr := exec.Command("az", "group", "create", "--name", clusterName+"-tm-rg", "--location", regionEast).CombinedOutput()
+				if trafficManagerErr != nil {
+					log.Error(emoji.Sprintf(":no_entry_sign: There was an error with creating the resource group!"))
+					panic(fmt.Errorf("Please try again"))
+				}
+				resourceGroupTm = clusterName + "-tm-rg"
+
 			}
 		} else {
 			// Create the resource group
@@ -114,9 +144,8 @@ func Init(environment string, clusterName string) (cluster string, err error) {
 	return clusterName, err
 }
 
-// GetEnvVariables function retrieves values from environment variables or sets them
-func GetEnvVariables(clusterName string, envType string) (err error) {
-	revisedClusterName := strings.Replace(clusterName, "-", "", -1)
+// VerifyEnvVariables function verifies that SP is set
+func VerifyEnvVariables(clusterName string, envType string) (err error) {
 
 	_, subscriptionExists := os.LookupEnv("ARM_SUBSCRIPTION_ID")
 	if subscriptionExists {
@@ -166,6 +195,13 @@ func GetEnvVariables(clusterName string, envType string) (err error) {
 			os.Setenv("ARM_TENANT_ID", tenant)
 		}
 	}
+	return err
+}
+
+// GetEnvVariables function retrieves values from environment variables or sets them
+func GetEnvVariables(clusterName string, envType string) (err error) {
+	revisedClusterName := strings.Replace(clusterName, "-", "", -1)
+
 	if envType == COMMON || envType == KEYVAULT || envType == MULTIPLE {
 		if storageAccount == "" {
 			_, exists := os.LookupEnv("AZURE_STORAGE_ACCOUNT")
@@ -389,6 +425,10 @@ func generateTfvars(envPath string, envType string, clusterName string, sshKey s
 	return err
 }
 
+func createTrafficManager() (err error) {
+	return
+}
+
 func servicePrincipalTemplate(config map[string]string) {
 	config["subscription"] = "\"" + subscription + "\""
 	config["service_principal"] = "\"" + servicePrincipal + "\""
@@ -466,16 +506,16 @@ func azureMultipleTemplate(config map[string]string, clusterName string, sshKey 
 	config["gitops_ssh_key"] = "\"" + "deploy-key" + "\""
 	config["traffic_manager_profile_name"] = "\"" + clusterName + "-tm\""
 	config["traffic_manager_dns_name"] = "\"" + clusterName + "-tm\""
-	config["traffic_manager_resource_group_name"] = "\"" + clusterName + "-tm-rg\""
-	config["traffic_manager_resource_group_location"] = "\"" + "westus2" + "\""
-	config["west_resource_group_name"] = "\"" + clusterName + "-west-rg\""
-	config["west_resource_group_location"] = "\"" + "westus2" + "\""
+	config["traffic_manager_resource_group_name"] = "\"" + resourceGroupTm + "\""
+	//config["traffic_manager_resource_group_location"] = "\"" + regionWest + "\""
+	config["west_resource_group_name"] = "\"" + resourceGroupWest + "\""
+	//config["west_resource_group_location"] = "\"" + "westus2" + "\""
 	config["gitops_west_path"] = "\"" + gitopsPathWest + "\""
-	config["east_resource_group_name"] = "\"" + clusterName + "-east-rg\""
-	config["east_resource_group_location"] = "\"" + "eastus" + "\""
+	config["east_resource_group_name"] = "\"" + resourceGroupEast + "\""
+	//config["east_resource_group_location"] = "\"" + regionEast + "\""
 	config["gitops_east_path"] = "\"" + gitopsPathEast + "\""
-	config["central_resource_group_name"] = "\"" + clusterName + "-central-rg\""
-	config["central_resource_group_location"] = "\"" + "centralus" + "\""
+	config["central_resource_group_name"] = "\"" + resourceGroupCentral + "\""
+	//config["central_resource_group_location"] = "\"" + regionCentral + "\""
 	config["gitops_central_path"] = "\"" + gitopsPathCentral + "\""
 	config["gitops_central_url_branch"] = "\"" + gitopsURLBranchCentral + "\""
 	config["gitops_east_url_branch"] = "\"" + gitopsURLBranchEast + "\""
@@ -564,14 +604,6 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 
 	if environment == MULTIPLE {
 
-		// When keyvault is not specified and common infra does not exist, create one
-		if keyvaultName == "" && keyvaultRG == "" && commonInfraPath == "" {
-			log.Info(emoji.Sprintf(":two_men_holding_hands: Common Infra path is not set, creating common infra with tenant id %s", tenant))
-			if _, error := Init(COMMON, clusterName); error != nil {
-				return error
-			}
-		}
-
 		if commonInfraPath != "" {
 			log.Info(emoji.Sprintf(":two_men_holding_hands: Contents of Azure Common Infra are being copied..."))
 			if error := CopyDir(commonInfraPath, environmentPath); error != nil {
@@ -592,6 +624,14 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 			vnet = configOutput["vnet_name"][1 : len(configOutput["vnet_name"])-1]
 			keyvaultName = configOutput["keyvault_name"][1 : len(configOutput["keyvault_name"])-1]
 			keyvaultRG = configOutput["global_resource_group_name"][1 : len(configOutput["global_resource_group_name"])-1]
+		}
+
+		// When keyvault is not specified and common infra does not exist, create one
+		if keyvaultName == "" && keyvaultRG == "" && commonInfraPath == "" {
+			log.Info(emoji.Sprintf(":two_men_holding_hands: Common Infra path is not set, creating new Azure Common Infra environment"))
+			if _, error := Init(COMMON, clusterName); error != nil {
+				return error
+			}
 		}
 
 		log.Info(emoji.Sprintf(":family: Common Infra path is set to %s", commonInfraPath))
