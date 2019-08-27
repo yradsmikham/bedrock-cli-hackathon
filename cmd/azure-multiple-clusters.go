@@ -27,7 +27,7 @@ func azureMultiCluster(servicePrincipal string, secret string) (err error) {
 }
 
 var azureMultiClusterCmd = &cobra.Command{
-	Use:   MULTIPLE + " --gitops-ssh-url manifest-repo-url-in-ssh-format [--subscription subscription-id] [--sp service-principal-app-id] [--secret service-principal-password] [--tenant serice-principal-tenant-id] [--cluster-name name-of-AKS-cluster] [--vm-count number-of-nodes-to-deploy-in-cluster] [--dns-prefix DNS-prefix] [--poll-interval flux-sync-poll-interval] [--west-repo-path path-in-repo-to-sync-for-west-cluster] [--central-repo-path path-in-repo-to-sync-for-central-cluster] [--east-repo-path path-in-repo-to-sync-for-east-cluster] [--west-branch repo-branch-to-sync-with-for-west-cluster] [--central-branch repo-branch-to-sync-with-for-central-cluster] [--east-branch repo-branch-to-sync-with-for-east-cluster] [--keyvault name-of-keyvault] [--keyvault-rg name-of-resource-group-for-keyvault]",
+	Use:   MULTIPLE + " --gitops-ssh-url manifest-repo-url-in-ssh-format [--subscription subscription-id] [--sp service-principal-app-id] [--secret service-principal-password] [--tenant serice-principal-tenant-id] [--cluster-name name-of-AKS-cluster] [--resource-group-west name-of-resource-group-for-west-region] [--resource-group-east name-of-resource-group-for-east-region] [--resource-group-central name-of-resource-group-for-central-region] [--resource-group-tm name-of-resource-group-for-traffic-manager] [--vm-count number-of-nodes-to-deploy-in-cluster] [--dns-prefix DNS-prefix] [--poll-interval flux-sync-poll-interval] [--west-repo-path path-in-repo-to-sync-for-west-cluster] [--central-repo-path path-in-repo-to-sync-for-central-cluster] [--east-repo-path path-in-repo-to-sync-for-east-cluster] [--west-branch repo-branch-to-sync-with-for-west-cluster] [--central-branch repo-branch-to-sync-with-for-central-cluster] [--east-branch repo-branch-to-sync-with-for-east-cluster] [--keyvault name-of-keyvault] [--keyvault-rg name-of-resource-group-for-keyvault]",
 	Short: "Deploys Bedrock Multiple Azure Kubernetes Service (AKS) cluster configuration",
 	Long:  `Deploys Bedrock Multiple Azure Kubernetes Service (AKS) cluster configuration`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -40,6 +40,7 @@ func init() {
 	azureMultiClusterCmd.Flags().StringVar(&resourceGroupWest, "resource-group-west", "", "An existing Azure Resource Group for west cluster")
 	azureMultiClusterCmd.Flags().StringVar(&resourceGroupEast, "resource-group-east", "", "An existing Azure Resource Group for east cluster")
 	azureMultiClusterCmd.Flags().StringVar(&resourceGroupCentral, "resource-group-central", "", "An existing Azure Resource Group for central cluster")
+	azureMultiClusterCmd.Flags().StringVar(&resourceGroupTm, "resource-group-tm", "", "An existing Azure Resource Group for Traffic Manager")
 	azureMultiClusterCmd.Flags().StringVar(&servicePrincipal, "sp", "", "Service Principal App Id")
 	azureMultiClusterCmd.Flags().StringVar(&secret, "secret", "", "Password for the Service Principal")
 	azureMultiClusterCmd.Flags().StringVar(&gitopsSSHUrl, "gitops-ssh-url", "git@github.com:timfpark/fabrikate-cloud-native-manifests.git", "The git repo that contains the resource manifests that should be deployed in the cluster in ssh format.")

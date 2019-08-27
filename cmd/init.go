@@ -93,13 +93,15 @@ func Init(environment string, clusterName string) (cluster string, err error) {
 					panic(fmt.Errorf("Please try again"))
 				}
 				resourceGroupCentral = clusterName + "-central-rg"
-				_, trafficManagerErr := exec.Command("az", "group", "create", "--name", clusterName+"-tm-rg", "--location", regionEast).CombinedOutput()
-				if trafficManagerErr != nil {
-					log.Error(emoji.Sprintf(":no_entry_sign: There was an error with creating the resource group!"))
-					panic(fmt.Errorf("Please try again"))
-				}
-				resourceGroupTm = clusterName + "-tm-rg"
 
+				if resourceGroupTm == "" {
+					_, trafficManagerErr := exec.Command("az", "group", "create", "--name", clusterName+"-tm-rg", "--location", regionEast).CombinedOutput()
+					if trafficManagerErr != nil {
+						log.Error(emoji.Sprintf(":no_entry_sign: There was an error with creating the resource group!"))
+						panic(fmt.Errorf("Please try again"))
+					}
+					resourceGroupTm = clusterName + "-tm-rg"
+				}
 			}
 		} else {
 			// Create the resource group
@@ -423,10 +425,6 @@ func generateTfvars(envPath string, envType string, clusterName string, sshKey s
 	spTomlFile.Close()
 
 	return err
-}
-
-func createTrafficManager() (err error) {
-	return
 }
 
 func servicePrincipalTemplate(config map[string]string) {
