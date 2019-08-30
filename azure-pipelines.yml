@@ -26,12 +26,8 @@ jobs:
     persistCredentials: true
     clean: true
 
-  - task: AzureCLI@1
-    inputs:
-      azureSubscription: CSE Dev Crews Americas West (7060bca0-7a3c-44bd-b54c-4bb1e9facfac)
-      scriptLocation: inlineScript
-      inlineScript: 'az account list'
-
+  - script: |
+      az login --service-principal -u $APP_URL -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
 
   - script: |
       mkdir -p '$(GOBIN)'
