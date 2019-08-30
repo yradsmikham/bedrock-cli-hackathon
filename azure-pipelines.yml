@@ -26,6 +26,10 @@ jobs:
     persistCredentials: true
     clean: true
 
+  - task: AzureCLI@1
+    inputs:
+      azureSubscription: 7060bca0-7a3c-44bd-b54c-4bb1e9facfac
+
   - script: |
       mkdir -p '$(GOBIN)'
       mkdir -p '$(GOPATH)/pkg'
