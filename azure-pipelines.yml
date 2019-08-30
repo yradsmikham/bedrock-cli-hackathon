@@ -28,7 +28,7 @@ jobs:
 
   - task: AzureCLI@1
     inputs:
-      azureSubscription: azurebedrockcli
+      azureSubscription: CSE Dev Crews Americas West (7060bca0-7a3c-44bd-b54c-4bb1e9facfac)
       scriptLocation: inlineScript
       inlineScript: 'az account list'
 
