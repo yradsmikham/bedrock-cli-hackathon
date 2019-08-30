@@ -70,6 +70,6 @@ jobs:
     displayName: "Lint"
 
   - script: |
-      go test -v -race ./...
+      go test -v -count=1 -race ./...
     workingDirectory: "$(modulePath)"
     displayName: "Test"
