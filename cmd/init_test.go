@@ -38,7 +38,7 @@ func TestInit(t *testing.T) {
 	uniqueResources := unique(resources)
 	fmt.Println("-------------------RESOURCES:-------------------")
 	fmt.Println(uniqueResources)
-	if len(uniqueResources) != 8 {
+	if len(uniqueResources) >= 7 {
 		t.Error("There was an error with creating resource groups for environments.")
 	}
 
