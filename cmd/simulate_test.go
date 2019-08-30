@@ -11,15 +11,14 @@ func TestSimulate(t *testing.T) {
 	env := map[string]string{
 		// names in lowercase because azure-multiple-clusters env requires a domain_name_label
 		//that uses only lowercase alphanumeric characters, numbers and hyphens
-		"azure-simple":   SIMPLE,
-		"azure-common":   COMMON,
-		"azure-singlekv": KEYVAULT,
-		"azure-multiple": MULTIPLE,
+		"azuresimple":   SIMPLE,
+		"azuresinglekv": KEYVAULT,
+		"azuremultiple": MULTIPLE,
 	}
 
 	for k, v := range env {
 		fmt.Println("Test simulation for environment", k)
-		_, errInit := Init(v, "test-"+k)
+		_, _, errInit := Init(v, "test-"+k)
 		if errInit != nil {
 			t.Error("There was an error creating test environment", k)
 		}

@@ -26,7 +26,7 @@ func Demo(servicePrincipal string, secret string) (err error) {
 
 	// Generate .tfvars file
 	log.Info(emoji.Sprintf(":checkered_flag: Initializing Azure Simple Environment"))
-	if _, error := Init(SIMPLE, "bedrock-demo-cluster"); error != nil {
+	if _, _, error := Init(SIMPLE, "bedrock-demo-cluster"); error != nil {
 		log.Error(emoji.Sprintf(":no_entry_sign: %s", error))
 		return error
 	}

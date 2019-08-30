@@ -14,7 +14,7 @@ var clusterName string
 
 // Initializes the configuration for the given environment
 func commonInfra(servicePrincipal string, storageAccount string, accessKey string, containerName string) (err error) {
-	commonInfraName, error := Init(COMMON, clusterName)
+	commonInfraName, _, error := Init(COMMON, clusterName)
 	if error != nil {
 		return error
 	}

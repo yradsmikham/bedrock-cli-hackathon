@@ -21,6 +21,7 @@ import (
 var SSHKey string
 var randomClusterName string
 var subnet string
+var resources []string
 
 // Generates random cluster name if "--cluster-name" not specified
 func nameGenerator() (name string) {
@@ -33,12 +34,13 @@ func nameGenerator() (name string) {
 }
 
 // Init function initializes the configuration for a given environment
-func Init(environment string, clusterName string) (cluster string, err error) {
+func Init(environment string, clusterName string) (cluster string, resourceList []string, err error) {
+	//resources := []string{}
 	requiredSystemTools := []string{"git", "helm", "sh", "curl", "terraform", "az"}
 	for _, tool := range requiredSystemTools {
 		path, err := exec.LookPath(tool)
 		if err != nil {
-			return "", err
+			return "", nil, err
 		}
 		log.Info(emoji.Sprintf(":mag: Using %s: %s", tool, path))
 	}
@@ -58,7 +60,7 @@ func Init(environment string, clusterName string) (cluster string, err error) {
 
 	// Set Environment Variables
 	if error := VerifyEnvVariables(clusterName, environment); error != nil {
-		return "", error
+		return "", nil, error
 	}
 
 	// Check if resource group exists, if it doesn't create it
@@ -71,6 +73,7 @@ func Init(environment string, clusterName string) (cluster string, err error) {
 				log.Error(emoji.Sprintf(":no_entry_sign: There was an error with creating the resource group!"))
 				panic(fmt.Errorf("Please try again"))
 			}
+			resources = append(resources, clusterName+"-kv-rg")
 		} else if environment == MULTIPLE {
 			if resourceGroupWest == "" || resourceGroupCentral == "" || resourceGroupEast == "" {
 				// Create resource groups for every region
@@ -103,6 +106,7 @@ func Init(environment string, clusterName string) (cluster string, err error) {
 					resourceGroupTm = clusterName + "-tm-rg"
 				}
 			}
+			resources = append(resources, resourceGroupWest, resourceGroupEast, resourceGroupCentral, resourceGroupTm)
 		} else {
 			// Create the resource group
 			log.Info(emoji.Sprintf(":construction: Creating new resource group: %s", clusterName+"-rg"))
@@ -111,6 +115,8 @@ func Init(environment string, clusterName string) (cluster string, err error) {
 				log.Error(emoji.Sprintf(":no_entry_sign: There was an error with creating the resource group!"))
 				panic(fmt.Errorf("Please try again"))
 			}
+			//resourceGroup = clusterName + "-rg"
+			resources = append(resources, clusterName+"-rg")
 		}
 	} else {
 		log.Info(emoji.Sprintf(":mag_right: Verifying Resource Group..."))
@@ -124,13 +130,13 @@ func Init(environment string, clusterName string) (cluster string, err error) {
 	// Copy Terraform Template
 	environmentPath := "bedrock/cluster/environments/" + clusterName
 	if error := os.MkdirAll(environmentPath, os.ModePerm); error != nil {
-		return "", error
+		return "", nil, error
 	}
 
 	log.Info(emoji.Sprintf(":flashlight: Creating New Environment %s", environmentPath))
 	if output, err := exec.Command("cp", "-r", "bedrock/cluster/environments/"+environment, environmentPath).CombinedOutput(); err != nil {
 		log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
-		return "", err
+		return "", nil, err
 	}
 
 	// Generate SSH keys
@@ -141,9 +147,9 @@ func Init(environment string, clusterName string) (cluster string, err error) {
 
 	// Create bedrock-config.tfvars
 	if err := addConfigTemplate(environment, fullEnvironmentPath, environmentPath, clusterName, SSHKey); err != nil {
-		return "", err
+		return "", nil, err
 	}
-	return clusterName, err
+	return clusterName, resources, err
 }
 
 // VerifyEnvVariables function verifies that SP is set
@@ -211,7 +217,9 @@ func GetEnvVariables(clusterName string, envType string) (err error) {
 			if exists {
 				storageAccount = os.Getenv("AZURE_STORAGE_ACCOUNT")
 			} else {
-				if error := util.CreateStorageAccount(revisedClusterName, clusterName+"-storage-rg", "centralus"); error != nil {
+				error := util.CreateStorageAccount(revisedClusterName, clusterName+"-storage-rg", "centralus")
+				resources = append(resources, clusterName+"-storage-rg")
+				if error != nil {
 					return error
 				}
 				storageAccount = revisedClusterName
@@ -548,7 +556,7 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 			return error
 		}
 
-		commonInfraPath = fullEnvironmentPath
+		commonInfraPath = environmentPath
 
 		log.Info(emoji.Sprintf(":raised_hands: Azure Common Infra environment " + fullEnvironmentPath + " has been successfully created!"))
 
@@ -560,7 +568,9 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 		// When common infra is a dependency but does not exist, create one
 		if commonInfraPath == "" {
 			log.Info(emoji.Sprintf(":two_men_holding_hands: Common Infra path is not set, creating one now..."))
-			if _, error := Init(COMMON, clusterName); error != nil {
+			_, _, error := Init(COMMON, clusterName)
+
+			if error != nil {
 				return error
 			}
 		} else {
@@ -568,12 +578,18 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 			if error := CopyDir(commonInfraPath, environmentPath); error != nil {
 				return error
 			}
-			chmodCmd := exec.Command("chmod", "-R", "777", ".terraform")
-			chmodCmd.Dir = string(environmentPath) + "/" + COMMON
-			if output, err := chmodCmd.CombinedOutput(); err != nil {
-				log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
-				return err
+
+			if _, err := os.Stat(environmentPath + "/" + COMMON + "/" + ".terraform"); err == nil {
+				chmodCmd := exec.Command("chmod", "-R", "777", ".terraform")
+				chmodCmd.Dir = string(environmentPath) + "/" + COMMON
+				if output, err := chmodCmd.CombinedOutput(); err != nil {
+					log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
+					return err
+				}
+			} else {
+				log.Info(emoji.Sprintf(":two_men_holding_hands: Terraform Init has not occurred for Azure Common Infra"))
 			}
+
 			configOutput, error := ReadTfvarsFile(environmentPath + "/" + COMMON + "/" + "bedrock-config.tfvars")
 			if error != nil {
 				log.Error(emoji.Sprintf(":no_entry_sign: %s", err))
@@ -607,12 +623,18 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 			if error := CopyDir(commonInfraPath, environmentPath); error != nil {
 				return error
 			}
-			chmodCmd := exec.Command("chmod", "-R", "777", ".terraform")
-			chmodCmd.Dir = string(environmentPath) + "/" + COMMON
-			if output, err := chmodCmd.CombinedOutput(); err != nil {
-				log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
-				return err
+
+			if _, err := os.Stat(environmentPath + "/" + COMMON + "/" + ".terraform"); err == nil {
+				chmodCmd := exec.Command("chmod", "-R", "777", ".terraform")
+				chmodCmd.Dir = string(environmentPath) + "/" + COMMON
+				if output, err := chmodCmd.CombinedOutput(); err != nil {
+					log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
+					return err
+				}
+			} else {
+				log.Info(emoji.Sprintf(":two_men_holding_hands: Terraform Init has not occurred for Azure Common Infra"))
 			}
+
 			configOutput, error := ReadTfvarsFile(environmentPath + "/" + COMMON + "/" + "bedrock-config.tfvars")
 			if error != nil {
 				log.Error(emoji.Sprintf(":no_entry_sign: %s", err))
@@ -627,7 +649,7 @@ func addConfigTemplate(environment string, fullEnvironmentPath string, environme
 		// When keyvault is not specified and common infra does not exist, create one
 		if keyvaultName == "" && keyvaultRG == "" && commonInfraPath == "" {
 			log.Info(emoji.Sprintf(":two_men_holding_hands: Common Infra path is not set, creating new Azure Common Infra environment"))
-			if _, error := Init(COMMON, clusterName); error != nil {
+			if _, _, error := Init(COMMON, clusterName); error != nil {
 				return error
 			}
 		}

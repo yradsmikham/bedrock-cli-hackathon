@@ -20,7 +20,7 @@ var regionEast string
 
 // Initializes the configuration for the given environment
 func azureMultiCluster(servicePrincipal string, secret string) (err error) {
-	if _, error := Init(MULTIPLE, clusterName); error != nil {
+	if _, _, error := Init(MULTIPLE, clusterName); error != nil {
 		return error
 	}
 	return err
