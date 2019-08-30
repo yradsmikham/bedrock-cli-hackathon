@@ -38,12 +38,14 @@ func TestInit(t *testing.T) {
 	uniqueResources := unique(resources)
 	fmt.Println("-------------------RESOURCES:-------------------")
 	fmt.Println(uniqueResources)
+	fmt.Print(len(uniqueResources))
 	if len(uniqueResources) >= 7 {
+		log.Info(emoji.Sprintf(":boom: Deleting resources..."))
+	} else {
 		t.Error("There was an error with creating resource groups for environments.")
 	}
 
 	// Clean up test environment
-	log.Info(emoji.Sprintf(":boom: Deleting resources..."))
 	for _, j := range uniqueResources {
 		cmd := exec.Command("az", "group", "delete", "--name", j, "--yes")
 		if output, err := cmd.CombinedOutput(); err != nil {

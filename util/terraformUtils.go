@@ -77,17 +77,17 @@ func TerraformPlan(directory string) (err error) {
 	tfPlanCmd.Dir = directory
 
 	// Displays Terraform errors
-	/* 	if output, err := tfPlanCmd.CombinedOutput(); err != nil {
+	if output, err := tfPlanCmd.CombinedOutput(); err != nil {
 		log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
-		return err
-	} */
-
-	//log.Info(emoji.Sprintf("DIRECTORY: %s", directory))
-	if err := runCommandWithOutput(tfPlanCmd); err != nil {
-		log.Error(emoji.Sprintf(":no_entry_sign: %s", err))
 		return err
 	}
 
+	//log.Info(emoji.Sprintf("DIRECTORY: %s", directory))
+	/* 	if err := runCommandWithOutput(tfPlanCmd); err != nil {
+	   		log.Error(emoji.Sprintf(":no_entry_sign: %s", err))
+	   		return err
+	   	}
+	*/
 	log.Info(emoji.Sprintf(":thumbsup: Terraform Plan Complete!"))
 	return err
 }
