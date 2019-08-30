@@ -29,6 +29,9 @@ jobs:
   - task: AzureCLI@1
     inputs:
       azureSubscription: azurebedrockcli
+      scriptLocation: inlineScript
+      inlineScript: 'az account list'
+
 
   - script: |
       mkdir -p '$(GOBIN)'
