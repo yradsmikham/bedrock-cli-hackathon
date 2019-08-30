@@ -18,11 +18,11 @@ func TestSimulate(t *testing.T) {
 
 	for k, v := range env {
 		fmt.Println("Test simulation for environment", k)
-		_, _, errInit := Init(v, "test-"+k)
+		_, _, errInit := Init(v, "test"+k)
 		if errInit != nil {
 			t.Error("There was an error creating test environment", k)
 		}
-		errSim := Simulate("bedrock/cluster/environments/test-" + k)
+		errSim := Simulate("bedrock/cluster/environments/test" + k)
 		if errSim != nil {
 			t.Error("There was an error simulating", k)
 			t.Error(errSim)
