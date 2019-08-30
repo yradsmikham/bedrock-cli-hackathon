@@ -68,9 +68,10 @@ func Init(environment string, clusterName string) (cluster string, resourceList 
 		if environment == COMMON {
 			// Create the resource group
 			log.Info(emoji.Sprintf(":construction: Creating new resource group: %s", clusterName+"-kv-rg"))
-			_, err := exec.Command("az", "group", "create", "--name", clusterName+"-kv-rg", "--location", region).CombinedOutput()
+			output, err := exec.Command("az", "group", "create", "--name", clusterName+"-kv-rg", "--location", region).CombinedOutput()
 			if err != nil {
 				log.Error(emoji.Sprintf(":no_entry_sign: There was an error with creating the resource group!"))
+				log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
 				panic(fmt.Errorf("Please try again"))
 			}
 			resources = append(resources, clusterName+"-kv-rg")
@@ -78,29 +79,33 @@ func Init(environment string, clusterName string) (cluster string, resourceList 
 			if resourceGroupWest == "" || resourceGroupCentral == "" || resourceGroupEast == "" {
 				// Create resource groups for every region
 				log.Info(emoji.Sprintf(":construction: Creating new resource group: %s", clusterName+"-west-rg, "+clusterName+"-central-rg, "+clusterName+"-east-rg"))
-				_, westRgCreationErr := exec.Command("az", "group", "create", "--name", clusterName+"-west-rg", "--location", regionWest).CombinedOutput()
+				outputWest, westRgCreationErr := exec.Command("az", "group", "create", "--name", clusterName+"-west-rg", "--location", regionWest).CombinedOutput()
 				if westRgCreationErr != nil {
 					log.Error(emoji.Sprintf(":no_entry_sign: There was an error with creating the resource group!"))
+					log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, outputWest))
 					panic(fmt.Errorf("Please try again"))
 				}
 				resourceGroupWest = clusterName + "-west-rg"
-				_, centralRgCreationErr := exec.Command("az", "group", "create", "--name", clusterName+"-central-rg", "--location", regionCentral).CombinedOutput()
+				outputCentral, centralRgCreationErr := exec.Command("az", "group", "create", "--name", clusterName+"-central-rg", "--location", regionCentral).CombinedOutput()
 				if centralRgCreationErr != nil {
 					log.Error(emoji.Sprintf(":no_entry_sign: There was an error with creating the resource group!"))
+					log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, outputCentral))
 					panic(fmt.Errorf("Please try again"))
 				}
 				resourceGroupEast = clusterName + "-east-rg"
-				_, eastRgCreationErr := exec.Command("az", "group", "create", "--name", clusterName+"-east-rg", "--location", regionEast).CombinedOutput()
+				outputEast, eastRgCreationErr := exec.Command("az", "group", "create", "--name", clusterName+"-east-rg", "--location", regionEast).CombinedOutput()
 				if eastRgCreationErr != nil {
 					log.Error(emoji.Sprintf(":no_entry_sign: There was an error with creating the resource group!"))
+					log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, outputEast))
 					panic(fmt.Errorf("Please try again"))
 				}
 				resourceGroupCentral = clusterName + "-central-rg"
 
 				if resourceGroupTm == "" {
-					_, trafficManagerErr := exec.Command("az", "group", "create", "--name", clusterName+"-tm-rg", "--location", regionEast).CombinedOutput()
+					output, trafficManagerErr := exec.Command("az", "group", "create", "--name", clusterName+"-tm-rg", "--location", regionEast).CombinedOutput()
 					if trafficManagerErr != nil {
 						log.Error(emoji.Sprintf(":no_entry_sign: There was an error with creating the resource group!"))
+						log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
 						panic(fmt.Errorf("Please try again"))
 					}
 					resourceGroupTm = clusterName + "-tm-rg"
@@ -110,9 +115,10 @@ func Init(environment string, clusterName string) (cluster string, resourceList 
 		} else {
 			// Create the resource group
 			log.Info(emoji.Sprintf(":construction: Creating new resource group: %s", clusterName+"-rg"))
-			_, err := exec.Command("az", "group", "create", "--name", clusterName+"-rg", "--location", region).CombinedOutput()
+			output, err := exec.Command("az", "group", "create", "--name", clusterName+"-rg", "--location", region).CombinedOutput()
 			if err != nil {
 				log.Error(emoji.Sprintf(":no_entry_sign: There was an error with creating the resource group!"))
+				log.Error(emoji.Sprintf(":no_entry_sign: %s: %s", err, output))
 				panic(fmt.Errorf("Please try again"))
 			}
 			//resourceGroup = clusterName + "-rg"
