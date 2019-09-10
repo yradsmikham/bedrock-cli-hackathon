@@ -47,7 +47,7 @@ func Init(environment string, clusterName string) (cluster string, resourceList 
 
 	// Check if Bedrock Repo is already cloned
 	log.Info(emoji.Sprintf(":open_file_folder: Checking for Bedrock"))
-	if output, err := exec.Command("git", "clone", "https://github.com/microsoft/bedrock").CombinedOutput(); output != nil || err != nil {
+	if output, err := exec.Command("git", "clone", "--branch", "v0.12.0", "https://github.com/microsoft/bedrock").CombinedOutput(); output != nil || err != nil {
 		log.Info(emoji.Sprintf(":star: Bedrock Repo already cloned"))
 	}
 
