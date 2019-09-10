@@ -1,3 +1,5 @@
+// +build !testing
+
 package cmd
 
 import (
@@ -22,11 +24,7 @@ func TestSimulate(t *testing.T) {
 		if errInit != nil {
 			t.Error("There was an error creating test environment", k)
 		}
-		errSim := Simulate("bedrock/cluster/environments/test" + k)
-		if errSim != nil {
-			t.Error("There was an error simulating", k)
-			t.Error(errSim)
-		}
+
 	}
 
 	// Clean up test environment
